@@ -1,0 +1,99 @@
+
+\section{Introduction}
+
+In this part, we will look at how we can formally verify that a program respects some given specifications.
+
+\section{Lambda calculus}
+
+\subsection{Intuitive grasp of the notation}
+
+Lambda calculus is about using unnamed or anonymous functions. Let's for instance consider the following function:
+    $$f(x) = x^2$$
+Alternatively, we could define it using this notation:
+    $$f = x \mapsto x^2$$
+But in lambda calculus, we use this notation instead:
+    $$f = \lambda x.\ x^2$$
+which we can read as "the function that takes $x$ and that returns $x^2$". Note that these three notations have the same meaning. Just as with the regular notation, we can apply this function to a term:
+    $$(\lambda x.\ x^2) 4 = 4^2 = 16$$
+which is again like saying:
+    $$f(4) = 4^2 = 16$$
+We can also create functions that return functions:
+    $$\lambda x.\ \lambda y.\ x$$
+Which, if we put the parenthesis, can be read as:
+    $$\lambda x.\ (\lambda y.\ x)$$
+Which is as if we had written:
+    $$f(x) = g_x, \text{ with } g_x(y) = x$$
+We can once again apply this function to other terms:
+    $$(\lambda x.\ \lambda y.\ x)\ 4\ 3 = (\lambda y. 4)\ 3 = 3$$
+
+
+\subsection{Formalism}
+
+\begin{definition}[Lambda term]
+    Let $\mathcal{V} = \{x, y, z, \dots\}$ be a set of symbols. A lambda term is a term following this syntax:
+    \begin{itemize}
+        \item If $x$ is a variable, then $x$ is a lambda term.
+        \item If $x$ is a variable and $y$ is a lambda term, then $(\lambda x. y)$, called a lambda-abstraction, is a lambda term.
+        \item If $f$ and $x$ are lambda terms, then $(f\ x)$, called an application, is a lambda term.
+    \end{itemize}
+    We allow ourselves to remove parenthesis when they aren't necessary. For instance, we consider applications as left-associative, which means that we can rewrite $(a b) c$ as $a b c$. Furthermore, the symbol $\lambda$ takes the maximum scope, which means that $\lambda x.\ (f\ x)$ can be rewritten as $\lambda x.\ f\ x$.
+\end{definition}
+
+
+We would like to say that $\lambda x.\ x$ and $\lambda y. y$ represent the same thing, just as $\int_0^1 x\ dx$ and $\int_0^1 y\ dy$ represent the same thing. In our case, we say that the two lambda terms are \textit{$\alpha$-equivalent}. Intuitively, two lambda terms are $\alpha$-equivalent when they are the same up to renaming. The renaming of the variable $x$ can only be done in sub-terms which are lambda-abstractions, that is, renaming be done in a sub-term which starts with the symbol $\lambda x$. However, we need to be careful about how we rename things. For instance, consider these two lambda terms:
+\begin{align}
+    &\lambda x.\ \lambda y.\ x\\
+    &\lambda x.\ \lambda x.\ x
+\end{align}
+Although we could get from (1) to (2) by renaming $y$ into $x$, these two lambda terms do not represent the same thing, and therefore we do not consider them as $\alpha$-equivalent. This example shows that we cannot rename everything limitlessly. We will now introduce the concept of \textit{free} and \textit{bounded} variables, which will enable us to see the problem that arised when going from (1) to (2).
+
+\begin{definition}[Free and bounded variables]
+    Let $e$ be a lambda term. We say that the variable $x$ is a bounded variable of $e$ when there is an expression of the form $\lambda x.\ \dots$ in $e$. We say that the variable $x$ is a free variable of $e$ when there is an occurence of $x$ in $e$ that is not in the scope of some $\lambda x.\ \dots$. More formally, the set $FV(t)$ of all free variables inside of X is defined like so:
+    \begin{itemize}
+        \item If $t$ is a variable, then $FV(x) = \{x\}$
+        \item $FV(\lambda x.\ y) = FV(y) \setminus \{x\}$
+        \item $FV(f\ x) = FV(f) \cup FV(x)$
+    \end{itemize}
+\end{definition}
+
+For instance, in $\lambda x.\ x y$, the variable $y$ is a free variable, since there is an occurence of $y$ in this lambda term which isn't inside of a $\lambda y.\ \dots$. However, the variable $x$ is a bounded variable, since there is an expression of the form $\lambda x.\ \dots$.
+
+\begin{remark}
+    Some variables can be both open and closed. For instance, in $(\lambda x.\ x) x$, the variable $x$ is both open and closed, since there is an expression of the form $\lambda x. \dots$, and an occurence of $x$ which is not in such expression.    
+\end{remark}
+
+Now, we may be able to see what went wrong when we went from (1) to (2). Let $e = \lambda y.\ x$ When replacing $y$ by $x$ in $e$, we obtain $e' = \lambda x.\ x$, which has a different meaning than $e$. The problem was that, although we had $x$ free in $e$, it is no longer free in $e'$. To prevent this, we will allow ourselves to rename variables into other variables only when this other variable isn't free in the sub-term we are starting the renaming. Here are a few examples:
+\begin{itemize}
+    \item In $\lambda x.\ \lambda y.\ x$, we cannot rename $y$ into $x$ in the sub-term $\lambda y.\ x$ because $x$ is a free variable in this sub-term.
+    \item In $\lambda x.\ \lambda y.\ \lambda x.\ x$, we can rename $y$ into $x$ in the sub-term $\lambda y.\ \lambda x.\ x$ because $x$ isn't a free variable in this sub-term.
+    \item In $(\lambda x. x) x$, although we cannot rename $x$ into $y$ in the whole lambda term, we can in the sub-term $\lambda x.\ x$ because $x$ is a free variable in this sub-term. 
+\end{itemize} 
+
+\begin{definition}[$\alpha$-equivalence]
+    
+\end{definition}
+
+
+
+
+Again, we can apply this function to a term:
+    $$(\lamb$$
+
+
+
+As lambda functions are right-associative, we can remove the parenthesis.
+
+
+
+
+
+
+
+And this is all we need to know about the notation of lambda calculus. More precisely, the grammar is :
+
+<expression> ::= <var> | \lambda <var> . <expression> | <expression> <expression>
+
+
+
+\section{Calculus of Constructions}
+
