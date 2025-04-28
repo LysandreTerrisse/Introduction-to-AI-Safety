@@ -64,14 +64,14 @@
 		\scalebox{0.9}{\input{images/climate_change.pgf}}
 \end{figure}
 
-		Now, to find $(\mathcal{Y} \mid \mathcal{X})$, we may try to find a curve that passes well through the data. For instance, we may try to use the function $f(x, \beta) = \beta_0 + \beta_1 x$ with parameters $\beta_0 = -2.94$ and $\beta_1 = 0.01$. In that case, we get:
+		Now, to find $(\mathcal{Y} \mid \mathcal{X})$, we may try to find a curve that passes well through the data. In this case, it seems very intuitive to fit a line through this data. If you remember, every non-vertical line can be represented by a function $f(x) = ax + b$, where $a \in \mathbb{R}$ is a constant called the \textit{slope} of the line, and where $b \in \mathbb{R}$ is a constant called the \textit{initial value}. In regression analysis, we will instead use the notation $f(x, \beta) = \beta_0 + \beta_1 x$, where $\beta_0$ and $\beta_1$ are called \textit{parameters}. This enables to state explicitly that we can tweak them in order to fit the line to the cloud of points. With parameters $\beta_0 = -2.94$ and $\beta_1 = 0.01$, we get:
 
 \begin{figure}[h!]
 		\centering
 		\scalebox{0.9}{\input{images/OLS_climate_change.pgf}}
 \end{figure}
 
-		This is pretty good! But, how have we determined that curve? And are there better ones? These are the questions that the field of \textit{regression analysis} tries to answer, which is crucial in order to study many real-life phenomena. But, is the fact that the curve fits the points almost perfectly mean that $(\mathcal{Y} \mid \mathcal{X}) = f(\mathcal{X}, \beta)$ with parameters $\beta_0 = -2.94$ and $\beta_1 = 0.01$? Not necessarily. Indeed, maybe the fact that the points are almost all aligned is just a measurement problem. Or maybe the function has this shape for values around this interval, but then increases exponentially for higher values. In other words, we cannot find $(\mathcal{Y} \mid \mathcal{X})$ from the $K$ observations without more information about $(\mathcal{Y} \mid \mathcal{X})$ and $\epsilon$. In regression analysis problems, we will therefore be given a function $f : \mathbb{R}^n \times \mathbb{R}^k$, called the \textit{regression model}, such that there exists a parameter $\beta \in \mathbb{R}^k$ such that $(\mathcal{Y} \mid \mathcal{X}) = f(\mathcal{X}, \beta)$. Our problem now just consists of finding $\beta$. However, we still don't have enough information to be $100\%$ confident about the real value of $\beta$.
+		This is pretty good! But, how have we determined that curve? And are there better ones? These are the questions that the field of regression analysis tries to answer, which is crucial in order to study many real-life phenomena. But, does the fact that the curve fits the points almost perfectly mean that we got the right parameters? Not necessarily. Indeed, maybe the fact that the points are almost all aligned is just a measurement problem. Or maybe the function has this shape for values around this interval, but then increases exponentially for higher values. In other words, we cannot find $(\mathcal{Y} \mid \mathcal{X})$ from the $N$ observations without more information about $(\mathcal{Y} \mid \mathcal{X})$ and $\epsilon$. In regression analysis problems, we will therefore be given a function $f : \mathbb{R}^n \times \mathbb{R}^k$, called the \textit{regression model}, such that there exists a parameter $\beta \in \mathbb{R}^k$ such that $(\mathcal{Y} \mid \mathcal{X}) = f(\mathcal{X}, \beta)$. Our problem now just consists of finding $\beta$. However, we still don't have enough information to be $100\%$ confident about the real value of $\beta$.
 \end{definition}
 
 \begin{definition}[Regression problem]
@@ -94,24 +94,24 @@
 
 \section{Linear regression}
 
+\begin{definition}[Linear function]
+    In linear algebra, linear functions are functions between two vector spaces which respect additivity (i.e. $f(u + v) = f(u) + f(v)$) and homogeneity (i.e. $f(\lambda u) = \lambda f(u)$). If the two vector spaces are finite-dimensional (with $a$ and $b$ dimensions respectively), then linear functions are exactly the functions of the form $f(x) = Ax$, where $A$ is a $b \times a$ matrix.
+\end{definition}
+
 \begin{definition}[Linear regression problems]
 		The regression problem $(n, k=n+1, N, f, \beta, \epsilon, X, Y)$ is said to be \textit{linear} when:
 
 		\begin{equation} \label{eqn1}
 				\forall \betat \in \mathbb{R}^k, \forall \vv \in \mathbb{R}^n, f(\vv, \betat) = \begin{bmatrix} 1 \\ \vv_1 \\ \vdots \\ \vv_n \end{bmatrix}^\top \begin{bmatrix} \betat_0 \\ \betat_1 \\ \vdots \\ \betat_n \end{bmatrix} = \betat_0 + \betat_1 \vv_1 + \dots + \betat_n \vv_n
 		\end{equation}
-		Which implies that:
-				$$\forall \betat \in \mathbb{R}^k, \forall i \in \{1, \dots, N\}, f(x_i, \betat) = \begin{bmatrix} 1 \\ x_{i1} \\ \vdots \\ x_{in} \end{bmatrix}^\top \begin{bmatrix} \betat_0 \\ \betat_1 \\ \vdots \\ \betat_n \end{bmatrix} = \betat_0 + \betat_1 x_{i1} + \dots + \betat_n x_{in}$$
+		Which means that for a fixed $\betat$, we have that $f$ is a linear combination of $1, \vv_1, \dots, \vv_n$ (or is a linear combination of $\vv_1, \dots, \vv_n$ up to the the parameter $\beta_0$), and that for a fixed $\vv$, we have that $f$ is a linear combination of $\betat$. For any given vector $\betat$, the graph of $f$ would look like a $n$-dimensional hyperplane in a $(n+1)$-dimensional space, whose initial value would be $\betat_0$. The reason why we concatenate 1 to the vector $\vv$ is so that the result of the function $f$ isn't necessarily equal to zero when $\vv$ is the null vector. We see that for any given $\vv \in \mathbb{R}^n$, the function $f$ is linear according to $\betat$. When considering the vector $\vv = x_i$ for any $i \in \{1, \dots, N\}$, and the real parameters $\betat = \beta$, we have:
+				$$\forall i \in \{1, \dots, N\}, f(x_i, \beta) = \begin{bmatrix} 1 \\ x_{i1} \\ \vdots \\ x_{in} \end{bmatrix}^\top \begin{bmatrix} \beta_0 \\ \beta_1 \\ \vdots \\ \beta_n \end{bmatrix} = \beta_0 + \beta_1 x_{i1} + \dots + \beta_n x_{in}$$
+		By adding $\epsilon_i$ to both sides, and realizing that $f(x_i, \beta) + \epsilon = y_i$, we get:
+				$$\forall i \in \{1, \dots, n\}, y_i = \begin{bmatrix} 1 \\ x_{i1} \\ \vdots \\ x_{in} \end{bmatrix}^\top \begin{bmatrix} \beta_0 \\ \beta_1 \\ \vdots \\ \beta_n \end{bmatrix} + \epsilon_i$$
 		Or equivalently:
-				$$\forall \betat \in \mathbb{R}^k, \forall i \in \{1, \dots, n\}, y_i = \begin{bmatrix} 1 \\ x_{i1} \\ \vdots \\ x_{in} \end{bmatrix}^\top \begin{bmatrix} \betat_0 \\ \betat_1 \\ \vdots \\ \betat_n \end{bmatrix} + \epsilon_i$$
-		Or equivalently:
-				$$\forall \betat \in \mathbb{R}^k, \fvector{y}{N} = \begin{bmatrix} 1 & x_{11} & \cdots & x_{1n} \\ 1 & x_{21} & \cdots & x_{2n} \\ \vdots & \vdots & \ddots & \vdots \\ 1 & x_{N1} & \cdots & x_{Nn} \end{bmatrix} \begin{bmatrix} \betat_0 \\ \betat_1 \\ \vdots \\ \betat_n \end{bmatrix} + \fvector{\epsilon}{N} = X' \betat + \epsilon$$
-		where $X'$ is the matrix $X$ for which we add a column of 1 to the left. When the regression problem is linear, we say that $f$ is a \textit{linear model}. Note also that the first element of the parameters $\betat$ is not $\betat_1$ but $\betat_0$.
+				$$Y = \fvector{y}{N} = \begin{bmatrix} 1 & x_{11} & \cdots & x_{1n} \\ 1 & x_{21} & \cdots & x_{2n} \\ \vdots & \vdots & \ddots & \vdots \\ 1 & x_{N1} & \cdots & x_{Nn} \end{bmatrix} \begin{bmatrix} \beta_0 \\ \beta_1 \\ \vdots \\ \beta_n \end{bmatrix} + \fvector{\epsilon}{N} = X' \beta + \epsilon$$
+		where $X'$ is the matrix $X$ for which we add a column of 1 to the left. When the regression problem is linear, we say that $f$ is a \textit{linear model}.
 \end{definition}
-
-\begin{remark}
-		In linear algebra, linear functions are functions between two vector spaces which respect additivity (i.e. $f(u + v) = f(u) + f(v)$) and homogeneity (i.e. $f(\lambda u) = \lambda f(u)$). If the two vector spaces are finite-dimensional (with $a$ and $b$ dimensions respectively), then linear functions are exactly the functions of the form $f(x) = Ax$, where $A$ is a $b \times a$ matrix. We see from the definition of linear models that they are linear according to $\beta$ (because the impact of $f$ on $\beta$ can be represented by the matrix $X'$).
-\end{remark}
 
 \begin{remark}
 		To verify whether a tuple $(n, k, N, f, \beta, \epsilon, X, Y)$ is a valid linear regression poblem, we apply the same method than in the last remark, and we verify that equation (\ref{eqn1}) holds.
@@ -120,7 +120,7 @@
 \subsection{Simple linear regression}
 
 \begin{definition}
-		A linear regression problem $(n, k, N, f, \eta, \epsilon, X, Y)$ is said to be \textit{simple} when $n=1$. That is, the dependent variable $\mathcal{Y}$ depends only of a single variable $\mathcal{X}_1$. Since $n=1$, then $k=2$ (as $k=n+1$ for linear regression problems), and therefore the regression model $f$ is:
+		A linear regression problem $(n, k, N, f, \beta, \epsilon, X, Y)$ is said to be \textit{simple} when $n=1$. That is, the dependent variable $\mathcal{Y}$ depends only of a single variable $\mathcal{X}_1$. Since $n=1$, then $k=2$ (as $k=n+1$ for linear regression problems), and therefore the regression model $f$ is:
 				$$f : \mathbb{R} \times \mathbb{R}^2 \rightarrow \mathbb{R}$$
 				$$\vv, \betat \mapsto \betat_0 + \betat_1 \vv_1$$
 		Simple linear regression problems can be plotted in a 2-dimensional plane (given any $\betat$), just as we did in the introduction, and the graph of $f$ will be a straight line.
@@ -144,7 +144,7 @@ We have already seen an example of what ordinary least squares looks like when a
 To visualize what the residual sum of squares is, just imagine squaring each such red line, and then summing these squared values. This is what ordinary least squares tries to minimize. Notice that, in an intuitive sense, when the straight line doesn't fit well with the observations, the residual sum of squares is high, whereas if the line were to fit perfectly with all points, the residual sum of squares would be zero. We will now see a way to solve ordinary least squares for simple linear regression problems.
 
 \begin{theorem} %https://statproofbook.github.io/P/slr-ols.html
-		For simple linear regression models, the \textit{unique} values for $\betat$ that will be chosen by ordinary least squares are:
+		For simple linear regression models, as long as we have at least two points of distinct $x_i$, the \textit{unique} values for $\betat$ that will be chosen by ordinary least squares are:
 				$$\betat_1 = \frac{\sum_{i=1}^N (x_i - \overline{x})(y_i - \overline{y})}{\sum_{i=1}^N (x_i - \overline{x})^2}$$
 				$$\betat_0 = \overline{y} - \betat_1 \overline{x}$$
 		With $\overline{x} = \frac{1}{N}\sum_{i=1}^N x_i$ and $\overline{y} = \frac{1}{n}\sum_{i=1}^N y_i$ are respectively the mean of the $x_i$ and the mean of the $y_i$.
@@ -196,7 +196,7 @@ To visualize what the residual sum of squares is, just imagine squaring each suc
 						 &= \frac{\frac{1}{N} \sum_{i=1}^N (x_i - \mx)(y_i - \my)}{\frac{1}{N} \sum_{i=1}^N (x_i^2 - 2 x_i \mx + \mx^2)}\\
 						 &= \frac{\sum_{i=1}^N (x_i - \mx)(y_i - \my)}{\sum_{i=1}^N (x_i - \mx)^2}
 		\end{align*}
-		Which concludes the proof. Note that, as we have assumed we had made at least two observations of distinct $x$ value, then the denominator has to be strictly positive.
+		Which concludes the proof. Note that, as we have assumed we had made at least two observations of distinct $x_i$, then the denominator has to be strictly positive.
 \end{proof}
 
 %\begin{remark}
@@ -209,16 +209,16 @@ To visualize what the residual sum of squares is, just imagine squaring each suc
 		A \textit{multiple} linear regression problem is a linear regression problem $(n, k=n+1, N, f, \beta, \epsilon, X, Y)$ with $n>1$. In that case, the regression model $f$ is:
 				$$f : \mathbb{R}^n \times \mathbb{R}^{n+1} \rightarrow \mathbb{R}$$
 				$$\vv, \betat \mapsto \betat_0 + \betat_1 \vv_1 + \dots + \betat_n \vv_n$$ 
-		which can be plotted on a $n+1$-dimensional space for any given $\betat$. The graph of $f$ will be an $n$-dimensional hyperplane. For instance, when $n=2$, we will have a 3-dimensional space containing points, and $f$ will be a 2-dimensional plane.
+		which, for any fixed $\betat$, can be plotted on a $(n+1)$-dimensional space, and the graph of $f$ would be an $n$-dimensional hyperplane, taking $\vv$, and outputting a real number. For instance, when $n=2$, we will have a 3-dimensional space containing points, and $f$ will be a 2-dimensional plane.
 \end{definition}
 
 Just as in single linear regression, ordinary least squares consists of finding the $\betat$ which minimizes the residual sum of squares. We will now see a way to solve multiple linear regression problems. However, we firstly need a few definitions.
 
 \begin{definition}
 		Let $f : \mathbb{R}^n \rightarrow \mathbb{R}$ be a function from vectors to reals. Suppose that $f$ admits a partial derivative $\frac{\partial f}{\vv_i}$ for all $i \in \{1, \dots, n\}$ (or $i \in \{0, \dots, n-1\}$ if we start the indexing at 0). In that case, we can define the gradient $\nabla f : \mathbb{R}^n \rightarrow \mathbb{R}^n$ as:
-		$$\nabla f = \x \mapsto \begin{bmatrix} \frac{\partial f}{\partial \vv_1}(\x) \\ \frac{\partial f}{\partial \vv_2}(\x) \\ \dots \\ \frac{\partial f}{\partial \vv_n}(\x) \end{bmatrix}$$
+		$$\nabla f = \left(\x \mapsto \begin{bmatrix} \frac{\partial f}{\partial \vv_1}(\x) \\ \frac{\partial f}{\partial \vv_2}(\x) \\ \vdots \\ \frac{\partial f}{\partial \vv_n}(\x) \end{bmatrix}\right) = \begin{bmatrix} \frac{\partial f}{\partial \vv_1} \\ \frac{\partial f}{\partial \vv_2} \\ \vdots \\ \frac{\partial f}{\partial \vv_n} \end{bmatrix}$$
 		Or equivalently:
-				$$(\nabla f)(\x) = \begin{bmatrix} \frac{\partial f}{\partial \vv_1}(\x) \\ \frac{\partial f}{\partial \vv_2}(\x) \\ \dots \\ \frac{\partial f}{\partial \vv_n}(\x) \end{bmatrix} \in \mathbb{R}^n$$
+				$$(\nabla f)(\x) = \begin{bmatrix} \frac{\partial f}{\partial \vv_1}(\x) \\ \frac{\partial f}{\partial \vv_2}(\x) \\ \vdots \\ \frac{\partial f}{\partial \vv_n}(\x) \end{bmatrix} \in \mathbb{R}^n$$
 \end{definition}
 
 The gradient has very interesting properties. As it is a generalization of the derivative, some formulas which hold for derivatives also hold for the gradient. We will now prove some of these properties, which are resumed in the next table. For the table of derivatives, we have $u, v : \mathbb{R} \rightarrow \mathbb{R}$, whereas for the table of gradients, we have $u, v : \mathbb{R}^n \rightarrow \mathbb{R}$. Some rows in the table of derivatives do not have an equivalent row for the table of gradients. For instance, the row containing the function $x \mapsto v(u(x))$ doesn't have an equivalent row for gradients. This is because, in this case, we would have a type error, as $v$ is supposed to take an element of $\mathbb{R}^n$ whereas it is given an element of $\mathbb{R}$. To give another example, the row containing the function $x \mapsto \cos(x)$ does not have an equivalent, because the cosinus of a vector (even when defined as the element wise cosinus of this vector) does not return a real, and therefore the function $f$ would return a vector instead of a real.
@@ -308,7 +308,7 @@ The gradient has very interesting properties. As it is a generalization of the d
 Understanding the similarity between the derivative in one dimension and the gradient in many dimensions is very important for the next proof. Another similarity is that, when a differentiable function $f$ reaches its minimum for one value $\x$, then the gradient evaluated at this value is $(\nabla f)(\x) = 0$.
 
 \begin{theorem}[Normal equation]
-		For multiple (and single) linear regression models, the values of $\betat$ that can be chosen by ordinary least squares respect this equation, called the \textit{normal equation}:\textit{unique} value for $\betat$ that will be chosen by ordinary least squares is:
+		For multiple (and single) linear regression models, the values of $\betat$ that can be chosen by ordinary least squares respect this equation, called the \textbf{normal equation}:
 				$$X'^\top X' \betat = X'^\top y$$
 		where $X'$ is the matrix $X$ for which we add a column of 1 to the left.
 \end{theorem}
@@ -344,7 +344,7 @@ Understanding the similarity between the derivative in one dimension and the gra
 
 If $X'^\top X$ is invertible, then the normal equation admits a \textit{unique} trivial solution:
 		$$\betat = (X'^\top X')^{-1}X'^\top y$$
-However, when $X^\top X$ isn't invertible, then 
+However, when $X^\top X$ isn't invertible, then %TODO
 
 
 
@@ -357,7 +357,39 @@ However, when $X^\top X$ isn't invertible, then
 		$$\forall \betat \in \mathbb{R}^k, \fvector{y}{N} = \begin{bmatrix} 1 & x_1 & x_1^2 & \cdots & x_1^{k-1} \\ 1 & x_2 & x_2^2 & \cdots & x_2^{k-1} \\ \vdots & \vdots & \vdots & \ddots & \vdots \\ 1 & x_N & x_N^2 & \cdots & x_N^{k-1} \end{bmatrix} \begin{bmatrix} \betat_0 \\ \betat_1 \\ \vdots \\ \betat_{k-1} \end{bmatrix} + \fvector{\epsilon}{N}$$
 \end{definition}
 
+\subsection{Polynomial interpolation}
 
+\begin{definition}[Interpolation]
+    We say that a function interpolates a set of points when this function passes through all these points.
+\end{definition}
+
+\begin{remark}
+    The sum of two polynomials of degrees $d_1$ and $d_2$ is a polynomial of degree $d_3 \leq \max \{d_1, d_2\}$.
+\end{remark}
+
+\begin{theorem}
+    Given $n$ points $(x_1, y_1), \dots, (x_n, y_n)$ of distinct $x_i$, there is a unique polynomial of degree at most $n$ which interpolates them.
+\end{theorem}
+
+\begin{proof}
+    For all $i \in \{1, n\}$, let's define the following polynomial:
+        $$\ell_i(x) = \prod_{j \in \{1, \dots, n\} \setminus \{i\}} \frac{x - x_j}{x_i - x_j}$$
+    The set of these polynomials is called the \textit{Lagrange basis} of our $n$ points. Firstly, notice that $\ell_i(x_i) = 1$ since:
+        $$\ell_i(x_i) = \prod_{j \in \{1, \dots, n\} \setminus \{i\}} \frac{x_i - x_j}{x_i - x_j} = \prod_{j \in \{1, \dots, n\} \setminus \{i\}} 1 = 1$$
+    Then, notice that for all $k \neq j$, $\ell_i(x_k) = 0$ since:
+        $$\ell_i(x_k) = \prod_{j \in \{1, \dots, n\} \setminus \{i\}} \frac{x_k - x_j}{x_i - x_j} = \left(\frac{x_k - x_k}{x_i - x_k}\right)\left(\prod_{j \in \{1, \dots, n\} \setminus \{i, k\}} \frac{x_k - x_j}{x_i - x_j}\right)$$
+    Finally, note that the numerator of $\ell_i(x)$ is a polynom of $n-1$ roots, and that the denominator is just a constant. As such, $\ell_i(x)$ has $n-1$ roots, and therefore is a polynom of degree $n-1$.
+
+    Now, let's consider $\ell_i(x)y_i$. This is still a polynom of degree at most $n-1$, which is still equal to 0 when given $x_k$ with $k \neq i$. But this time, instead of being equal to 1 when given $x_i$, it is equal to $y_i$.
+
+    And finally, let's consider $L(x) = \sum_{i=1}^n \ell_i(x)y_i$, called the \textit{Lagrange polynomial} of our points. For each $i \in \{1, \dots, n\}$, the polynomial $\ell_i(x)y_i$ would be equal to $y_i$ and all the others would be equal to 0. Therefore, the sum $L(x_i)$ would be equal to $y_i$, which means that this polynom interpolates all our points. Furthermore, as it is a sum of polynoms of degree at most $n$, the polynom is of degree at most $n$.
+
+    Now, we want to prove that the Lagrange polynomial is the only polynomial of degree at most $n$ which interpolates our points.
+
+, since $\ell_i$ has a term $x - x_j$ which would become $x_j - x_j = 0$, and which will be multiplied by the rest of the polynom.
+
+    
+\end{proof}
 
 
 %A curve fitting a line
@@ -367,20 +399,20 @@ However, when $X^\top X$ isn't invertible, then
 \section{Linear reduction}
 
 \begin{definition}
-		A regression problem $RP = (n, k, N, f, \beta, \epsilon, Y)$ is reducible to another regression problem $RP' = (n', k', N', g, \beta', \epsilon', Y')$ when we can convert the solution $\beta'$ of $RP'$ into the solution $\beta$ of $RP$. A regression problem $RP$ is said to be \textit{linearizable} when we can reduce $RP$ to a linear regression problem $RP'$. %,  is linearizable when it can \textit{easily} be transformed into a linear regression problem $RP' = (n', k, N', f', \beta, \epsilon', Y')$ which has the same solution $\beta$. This concept is informal, as there is no precise definition of what we mean by "easy".
+		A regression problem $RP = (n, k, N, f, \beta, \epsilon, X, Y)$ is reducible to another regression problem $RP' = (n', k', N', g, \beta', \epsilon', X', Y')$ when we can convert the solution $\beta'$ of $RP'$ into the solution $\beta$ of $RP$. A regression problem $RP$ is said to be \textit{linearizable} when we can reduce $RP$ to a linear regression problem $RP'$. %,  is linearizable when it can \textit{easily} be transformed into a linear regression problem $RP' = (n', k, N', f', \beta, \epsilon', Y')$ which has the same solution $\beta$. This concept is informal, as there is no precise definition of what we mean by "easy".
 \end{definition}
 
 \begin{example}[Regression problems with a strictly positive exponential curve without errors can be linearized]
 		Suppose we try to solve a regression problem $RP = (n=1, k=2, N, f, \beta, \epsilon, X, Y)$, where there is no measurement error (i.e. $\epsilon$ is null), and where the graph of $f$ is a strictly positive (i.e. $\beta_0 > 0$) exponential curve:
 				$$f : \mathbb{R} \times \mathbb{R}^2 \rightarrow \mathbb{R}$$
 				$$\vv, \hat{\beta} \mapsto \hat{\beta}_0 e^{\hat{\beta}_1 \vv_1}$$
-		This regrssion problem isn't linear. To reduce the non-linear regression problem $RP$ to a linear regression prolem $RP'$, instead of studying the relationship between $\mathcal{X}$ and $\mathcal{Y}$, we will try to study the relationship between $\mathcal{X}$ and $\ln \mathcal{Y} $. That is, we will linearize our data by creating a column vector $Y'$ containing the logarithmic values of $Y$. As $\epsilon_i = 0$, and as $\beta_0 > 0$, we have $y_i = f(x_i, \beta) + \epsilon_i = f(x_i, \beta) = \beta_0 e^{\hat{\beta_1} x_{i1}} > 0$, and so $\ln y_i$ is defined. Then, we define $Y'$ like so:
+		This regrssion problem isn't linear. However, you may know that, when we have an exponential curve, and that we then use a logarithmic scale for the $y$ axis, we obtain a line. In the same way, to reduce the non-linear regression problem $RP$ to a linear regression prolem $RP'$, instead of studying the relationship between $\mathcal{X}$ and $\mathcal{Y}$, we will try to study the relationship between $\mathcal{X}$ and $\ln \mathcal{Y}$. That is, we will linearize our data by creating a column vector $Y'$ containing the logarithmic values of $Y$. As $\epsilon_i = 0$, and as $\beta_0 > 0$, we have $y_i = f(x_i, \beta) + \epsilon_i = f(x_i, \beta) = \beta_0 e^{\beta_1 x_{i1}} > 0$, and so $\ln y_i$ is defined. Then, we define $Y'$ like so:
 				$$Y' = \ln Y = \fvector{\ln y}{N}$$
 		And we define $\beta'$ like so:
 				$$\beta' = \begin{bmatrix} \beta'_0 \\ \beta'_1 \end{bmatrix} = \begin{bmatrix} \ln \beta_0 \\ \beta_1 \end{bmatrix}$$
 		And let's also define $g$ as:
 				$$g : \mathbb{R} \times \mathbb{R}^2 \rightarrow \mathbb{R}$$
-				$$\vv, \hat{\beta} \mapsto \hat{\beta}_0 + \hat{\beta}_1 \vv_1$$
+				$$\vv, \betat \mapsto \betat_0 + \betat_1 \vv_1$$
 		Then, $RP' = (n=1, k=2, N, g, \beta', \epsilon, X, Y')$ is a regression problem, as we have:
 		\begin{align*}
 				y' &= \ln y_i\\
@@ -404,24 +436,43 @@ However, when $X^\top X$ isn't invertible, then
 \begin{example}[Regression problems with a parabola can be linearized]
 		Suppose we try to solve a regression problem $RP = (n=1, k=3, N, f, \beta, \epsilon, X, Y)$, where $f$ is a parabola:
 				$$f : \mathbb{R} \times \mathbb{R}^3 \rightarrow \mathbb{R}$$
-				$$\vv, \beta \mapsto \beta_0 + \beta_1 \vv_1 + \beta_2 \vv_1^2$$
+				$$\vv, \betat \mapsto \betat_0 + \betat_1 \vv_1 + \betat_2 \vv_1^2$$
 		In this form, $f$ isn't a linear model for $RP$. We will now see how to go from the non-linear regression problem $RP$ to an equivalent linear regression problem $RP'$. To do so, we will change $X$ (which, since $n=1$, has a single column) by adding one column that contains the squared value of the pre-existing column. That is, we define $X'$ as:
 				$$X' = \begin{bmatrix} x'_{11} & x'_{12} \\ x'_{21} & x'_{22} \\ \vdots & \vdots \\ x'_{N1} & x'_{N2} \end{bmatrix} \begin{bmatrix} x_{11} & x_{11}^2 \\ x_{21} & x_{21}^2 \\ \vdots & \vdots \\ x_{N1} & x_{N1}^2 \end{bmatrix}$$
 		Since we changed the data, we also need to change $f$ so that it takes an element of $\mathbb{R}^2$ instead of an element of $\mathbb{R}$. In this case, we define $g$ such that:
 				$$g : \mathbb{R}^2 \times \mathbb{R}^3$$
 				$$\vv, \beta \mapsto \beta_0 + \beta_1 \vv_1 + \beta_2 \vv_2$$
-		Then, $RP' = (n=2, k, N, g, \beta, X', Y)$ is a regression problem, as we have:
+		Then, $RP' = (n'=2, k, N, g, \beta, X', Y)$ is a regression problem, as we have:
 		\begin{align*}
 				y &= f(x_i, \beta) + \epsilon_i\\
 				  &= \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i1}^2 + \epsilon_i\\
 				  &= \beta_0 + \beta_1 x'_{i1} + \beta_2 x'_{i2} + \epsilon_i\\
-				  &= g(x'_i, \beta) + \epsilon
+				  &= g(x'_i, \beta) + \epsilon_i
 		\end{align*}
 		Furthermore, $RP'$ is linear, which we can see by looking at the definition of $g$. Finally, as $RP$ and $RP'$ share the same solution $\beta$, we have that $RP'$ is trivially a reduction of $RP$.
 \end{example}
 
-\begin{remark}
-		Using the same principle than in the last example, polynoms can be linearized.
-\end{remark}
+\begin{example}
+		Using the same principle than in the last example, we have that polynoms of any given degree $d$ can be linearized. Let $RP = (n=1, k=d+1, N, f, \beta, X, Y)$ be a polynomial regression problem:
+            $$f : \mathbb{R} \times \mathbb{R}^{d+1}$$
+            $$x, \betat \mapsto \betat_0 + \betat_1 x + \betat_2 x^2 + \dots + \betat_{d} x^d$$
+        We will now create a linear regression problem $RP' = (n'=d, k, N, g, \beta, X', Y)$ where we define $X'$ as :
+            $$X' = \begin{bmatrix} x_{11} & x_{11}^2 & x_{11}^3 & \dots  & x_{11}^d\\
+                                   x_{21} & x_{21}^2 & x_{21}^3 & \dots  & x_{21}^d\\
+                                   \vdots & \vdots   & \vdots   & \ddots & \vdots  \\
+                                   x_{N1} & x_{N1}^2 & x_{N1}^3 & \dots  & x_{N1}^d \end{bmatrix}$$
+        And we define $g$ as:
+            $$g : \mathbb{R} \times \mathbb{R}^{d+1}$$
+            $$\vv, \betat \mapsto \betat_0 = \betat_1 \vv_1 + \betat_2 \vv_2 + \dots + \betat_d \vv_d$$
+
+        In that case, we have that $RP'$ is a regression problem, as we have:
+        \begin{align*}
+            y &= f(x_i, \beta) + \epsilon_i\\
+              &= \beta_0 + \beta_1 x_{i1} + \beta_2 x_{i1}^2 + \dots + \beta_d x_{i1}^d + \epsilon_i\\
+              &= \beta_0 + \beta_1 x'_{i1} + \beta_2 x'_{i2} + \dots + \beta_d x'_{id} + \epsilon_i\\
+              &= g(x'_i, \beta) + \epsilon_i
+        \end{align*}
+        Furthermore, $g$ is by definition linear. Finally, as $RP$ and $RP'$ share the same solution $\beta$, then $RP'$ is a reduction of $RP$.
+\end{example}
 
 \end{document}
