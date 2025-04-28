@@ -1,0 +1,694 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\renewcommand*{\proofname}{Proof}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\theoremstyle{example}
+\newtheorem{example}{Example}[section]
+\usepackage{fullpage}
+\allowdisplaybreaks
+\usepackage{csquotes}
+\DeclareMathOperator*{\argmax}{arg\,max} %Argmax
+\DeclareMathOperator*{\opE}{\mathbb{E}}
+\newcommand*{\rf}{\mathbf{r}}           %State-reward function
+\newcommand*{\f}{\mathbf{f}}            %Visit function
+\newcommand*{\F}{\mathcal{F}}
+\newcommand*{\D}{\mathcal{D}}
+\newcommand*{\Dbd}{{\D_{\text{bound}}}} %Bounded distribution
+\newcommand*{\Dany}{\D_{\text{any}}}    %Any distribution
+\newcommand*{\prn}[1]{\left(#1\right)}  %Parentheses
+\newcommand*{\brx}[1]{\left[#1\right]}  %Brackets
+\newcommand*{\E}[2]{\opE_{#1}\brx{#2}}  %Expected value
+\newcommand*{\pwr}{\textsc{Power}}
+
+
+\title{Markov Decision Processes}
+\author{Lysandre Terrisse}
+\date{January 2025}
+
+\begin{document}
+\maketitle
+
+%https://www.davidsilver.uk/wp-content/uploads/2020/03/MDP.pdf
+%http://researchers.lille.inria.fr/lazaric/Webpage/MVA-RL_Course14_files/notes-lecture-02.pdf
+%http://www.deeplearningwizard.com/deep_learning/deep_reinforcement_learning_pytorch/bellman_mdp
+%https://towardsdatascience.com/why-does-the-optimal-policy-exist-29f30fd51f8c
+%https://en.wikipedia.org/wiki/Banach_fixed-point_theorem
+%https://en.wikipedia.org/wiki/Markov_reward_model
+%https://www.youtube.com/watch?v=i3AkTO9HLXo
+
+\section{Markov chains}
+
+\begin{definition}[Discrete-time Markov chains]
+		A discrete-time Markov chain (DTMC) consists of a \textit{set of states} $S = \{1, \dots, n\}$ and a family of random variables $(S_t)_{t \in \mathbb{N}}$ over $S$, and which respects the Markov property:
+				$$\mathbb{P}(S_{t+1} = s_{t+1} \mid S_0 = s_0, \dots, S_t = s_t) = \mathbb{P}(S_{t+1} = s_{t+1} \mid S_t = s_t)$$
+		We call this the probability at timestep $t$ of transitioning from state $s_t$ to state $s_{t+1}$. In that case, the Markov property can be interpreted as stating that, when knowing the present, knowing about the past does not give us more information about the future.
+\end{definition}
+
+\begin{definition}[Time-homogeneous Markov chains]
+		A time-homogeneous Markov chain is a DTMC which is homogeneous, that is, the probability of transitioning from one state to another does not vary over time:
+				$$\mathbb{P}(S_{t+2} = s' \mid S_{t+1} = s) = \mathbb{P}(S_{t+1} = s' \mid S_t = s)$$
+		From this property and the Markov property, we can deduce that $\mathbb{P}(S_{t+1} = s' \mid S_t = s)$ is fully determined by $s'$ and $s$. In that case, we can represent a homogeneous discrete-time Markov chain as a tuple $(S, P)$, such that:
+		\begin{itemize}
+				\item $S = \{1, \dots, n\}$ is the set of states, called the \textit{state space}
+				\item $P$ is a matrix where $p_{s,s'} = P(s' \mid s) = \mathbb{P}(S_{t+1}= s' \mid S_t = s)$ is the probability of transitioning from state $s$ to state $s'$
+		\end{itemize}
+\end{definition}
+
+We will now see how to solve time-homogeneous Markov chains. But, as there is no specific objective to time-homogeneous Markov chains, we will consider this question: If we were to start the Markov chain in a random state according to a probability distribution $\pi^0$ (represented as a row vector), what is the probability distribution $\pi^t$ telling which state we're at during timestep $t$? We will see a way to easily compute $\pi^t$.
+
+\begin{theorem}
+		For all $t \in \mathbb{N}$, we have:
+				$$\pi^t = \pi^0 P^t$$
+		Equivalently, we have:
+				$$\pi^{t+1} = \pi^t P$$
+\end{theorem}
+
+\begin{proof}
+		$$\pi^{t+1}_i = \mathbb{P}(S_{t+1} = i) = \sum_{j=1}^n \mathbb{P}(S_{t+1} = i \mid S_t = j) \mathbb{P}(S_t = j) = \sum_{j=1}^n p_{j,i} \pi^t_j$$
+		$$\pi^t P = \begin{pmatrix} \pi^t_1 & \dots & \pi^t_n \end{pmatrix} \begin{pmatrix} p_{1,1} & p_{1,2} & \dots \\ p_{2,1} & \ddots & \\ \vdots & & p_{n,n} \end{pmatrix}
+		= \begin{pmatrix} \sum_{j=1}^n p_{j,1} \pi^t_j & \dots & \sum_{j=1}^n p_{j,n}^{(t)} \pi^t_j \end{pmatrix}
+		= \pi_{t+1}$$
+\end{proof}
+
+\begin{remark}
+		This formula enables us to compute in $O(\log t)$ time the probability distribution $\pi_t$ (by considering $n$ as a constant), as matrix exponentiation takes a logarithmic time to compute.
+\end{remark}
+
+\begin{definition}
+		A fixed-point for a function $f$ is a point $x$ such that:
+				$$f(x) = x$$
+		And similarly, a fixed-point for a matrix $M$ is a row vector $x$ such that:
+				$$xM = x$$
+\end{definition}
+
+In time-homogeneous Markov chains, it may happen that there are \text{stationary distributions}, that is, they are fixed-points of $P$. They therefore verify $\pi P = \pi$, which is equivalent to $\pi P - \pi = 0$, and therefore to $\pi(P - I) = 0$, where $I$ is the identity matrix. We can then solve the equation by using the \textit{Gaussian elimination}. If a non-null vector satisfies this property, and that this vector has no negative term, then by normalizing it (i.e. by dividing it by the sum of its terms), we obtain a stationary distribution. Note that this distribution does not need to be unique (a trivial case is when $P=I$).
+
+Time-homogeneous Markov chains are very useful. However, they do not have any specific goal or variable to maximize/minimize. We will now consider Markov Reward Processes, which have a reward function, and in which the goal is to determine how valuable different states are in order to maximize this reward function.
+
+\section{Markov Reward Processes}
+
+\begin{definition}[Markov Reward Process]
+		A Markov Reward Process (MRP) is a time-homogeneous Markov chain in which:
+		\begin{itemize}
+				\item We add a family of random variables $(R_t)_{t \in \mathbb{N}^*}$ over $\mathbb{R}$, called rewards.
+				\item We make the Markov property stronger by assuming:
+						$$\mathbb{P}(S_{t+1} = s_{t+1} \mid S_t = s_t, R_1 = r_1, \dots, R_t = r_t) = \mathbb{P}(S_{t+1} = s_{t+1} \mid S_t = s_t)$$
+				\item Rewards respect their own Markov property:
+						$$\mathbb{E}[R_{t+1} \mid S_0 = s_0, \dots, S_t = s_t, R_1 = r_1, \dots, R_t = r_t] = \mathbb{E}[R_{t+1} \mid S_t = s_t]$$
+				\item Rewards are homogeneous:
+						$$\mathbb{E}[R_{t+2} \mid S_{t+1} = s] = \mathbb{E}[R_{t+1} \mid S_t = s]$$
+		\end{itemize}
+		In that case, we can define a Markov reward process as a tuple $(S, P, R, \gamma)$ such that:
+		\begin{itemize}
+				\item $(S, P)$ is a time-homogeneous Markov chain
+				\item $R$ is a column vector where $r_s = \mathbb{E}[R_{t+1} \mid S_t = s]$ is the expected immediate reward from leaving $s$
+				\item $\gamma \in [0, 1)$ is called the discount factor
+		\end{itemize}
+		Some authors make one more assumption about rewards to make the homogeneousness condition of rewards stronger:
+				$$\mathbb{E}[R_{t+2} \mid S_{t+1} = s, S_{t+2} = s'] = \mathbb{E}[R_{t+1} \mid S_t = s, S_{t+1} = s']$$
+				Which enables them to define the matrix $R'$ such that $r'_{s,s'} = R'(s, s') = \mathbb{E}[R_{t+1} \mid S_t = s, S_{t+1} = s']$ is the expected immediate reward obtained by transitioning from state $s$ to state $s'$. We will do so as well.
+\end{definition}
+
+\begin{definition}
+		We define the \textit{return} at timestep $t$ as the total future discounted reward. Here, \textit{discounted} means that future rewards matter exponentially less than immediate rewards, according to the discount factor $\gamma \in [0, 1]$. More formally, the return is defined as: 
+				$$G_t = R_{t+1} + \gamma R_{t+2} + \gamma^2 R_{t+3} + \dots = \sum_{i=0}^\infty \gamma^i R_{t+1+i}$$
+		The reason why we consider future rewards as less important is to ensure that the infinite sum indeed makes sense. Remember that an infinite sum $\sum_{i=0}^\infty u_i$ of the family $(u_i)_{i \in \mathbb{N}}$ is defined as $\lim_{n \rightarrow \infty} \sum_{i=0}^n u_i$. But, it may happen that this limit does not exist. For instance, the limit $\lim_{n \rightarrow \infty} \sum_{i=0}^n (-1)^n$ does not exist, and therefore the infinite sum $\sum_{i=0}^\infty (-1)^i$ (known as Grandi's series) does not make sense. For this, we have two possibilities:
+		\begin{itemize}
+				\item Assume $\gamma \neq 1$: in this way, every MDP we would come up with will have will have a finite and well-defined return.
+				\item Generalize the notion of sums: we could use the \text{Cesàro summation}, which instead defines $\sum_{i=0}^\infty u_i$ as $\lim_{n \rightarrow \infty} \frac{1}{n} \sum_{i=0}^{n-1} u_i$. For instance, Grandi's series would be equal to $\frac{1}{2}$. This allows infinite returns. But in this case, we may get counterintuitive results. For instance, let's consider a MRP with only two states $\{1, 2\}$, in which from state 1, we necessarily transition to state 2 and win in expectation a reward of 100, and in state 2, we necessarily stay in state 2 and win in expectation no reward (i.e. $P(1, 2) = 1$, $P(2, 2) = 1$, $R(1) = 100$, and $R(2) = 0$. Then, which state is it best to start in? According to the Cesàro summation, in both cases the expected return would be zero, and therefore both states would counterintuitively be equally good.
+		\end{itemize}
+		We will choose the first approach and therefore assume $\gamma \neq 1$.
+\end{definition}
+		
+\begin{definition}
+		The value function (or utility function) is a column vector $V$ where $V_s$ is the expected return when starting from $s$:
+				$$V_s = V(s) = \mathbb{E}[G_t \mid S_t = s]$$
+\end{definition}
+
+The return has a recursive definition, which is $G_t = R_{t+1} + \gamma G_{t+1}$. Now, we may wonder whether the value function $V$ also has a recursive definition. As we'll see, it does, and it will give us a way to compute $V$. Such recursive definitions, often called \text{Bellman equations}, are one of the most important formulas in MRPs and their variants.
+
+\begin{theorem}[Bellman equation for MRPs]
+				$$V(s) = R(s) + \gamma \sum_{s' \in S} P(s' \mid s_t) V(s')$$
+		Or equivalently
+				$$V(s) = \sum_{s' \in S} P(s' \mid s)(R'(s, s') + \gamma V(s'))$$
+\end{theorem}
+
+\begin{proof}
+		\begin{align*}
+				V(s) &= \mathbb{E}[G_t \mid S_t = s]\\
+					   &= \mathbb{E}[R_{t+1} + \gamma G_{t+1} \mid S_t = s]\\
+					   &= \mathbb{E}[R_{t+1} \mid S_t = s] + \gamma \mathbb{E}[G_{t+1} \mid S_t = s]\\
+					   &= R(s) + \gamma \mathbb{E}[G_{t+1} \mid S_t = s]\\
+					   &= R(s) + \gamma \sum_{s' \in S} P(s' \mid s) \mathbb{E}[G_{t+1} \mid S_t = s, S_{t+1} = s']\\
+					   &= R(s) + \gamma \sum_{s' \in S} P(s' \mid s) \mathbb{E}[G_{t+1} \mid S_{t+1} = s']\\
+					   &= R(s) + \gamma \sum_{s' \in S} P(s' \mid s) V(s')
+		\end{align*}
+\end{proof}
+
+\begin{remark}
+		We can rewrite the Bellman equation in terms of linear algebra:
+				$$V = R + \gamma P V$$
+		Indeed, we have:
+				$$\begin{pmatrix} v_1 \\ \vdots \\ v_n \end{pmatrix} = \begin{pmatrix} r_1 \\ \vdots \\ r_n \end{pmatrix} + \gamma \begin{pmatrix} p_{1,1} & p_{1,2} & \dots \\ p_{2,1} & \ddots & \\ \vdots & & p_{n,n} \end{pmatrix} \begin{pmatrix} v_1 \\ \vdots \\ v_n \end{pmatrix}$$
+\end{remark}
+
+Note that in MRPs, althouh we gain rewards, we cannot take actions to maximize this reward. We will now look at Markov Decision Processes, which include exactly this.
+
+\section{Markov Decision Processes}
+
+\begin{definition}
+		A Markov Decision Process (MDP) is a MRP in which:
+		\begin{itemize}
+				\item We add a family of random variables $(A_t)_{t \in \mathbb{N}}$ over a set of actions $A = \{1, \dots, m\}$
+				\item We make the Markov property stronger by assuming:
+						$$\mathbb{P}(S_{t+1} = s_{t+1} \mid S_t = s_t, A_0 = a_0, \dots, A_t = a_t) = \mathbb{P}(S_{t+1} = s_{t+1} \mid S_t = s_t, A_t = a_t)$$
+				\item We make the homogeneousness condition stronger by assuming:
+						$$\mathbb{P}(S_{t+2} = s' \mid S_{i+1} = s, A_{t+1} = a) = \mathbb{P}(S_{i+1} = s' \mid S_i = s, A_i = a)$$
+				\item We make the Markov property of rewards stronger by assuming:
+						$$\mathbb{E}[R_{t+1} \mid S_t = s_t, A_0 = a_0, \dots, A_t = a_t] = \mathbb{E}[R_{t+1} \mid S_t = s_t, A_t = a_t]$$
+				\item We make the homogeneousness condition of rewards stronger by assuming:
+						$$\mathbb{E}[R_{t+2} \mid S_{t+1} = s, A_{t+1} = a] = \mathbb{E}[R_{t+1} \mid S_t = s, A_t = a]$$
+		\end{itemize}
+		We can then represent a MDP as a tuple $(S, A, P, R, \gamma)$ such that:
+		\begin{itemize}
+				\item $S = \{1, \dots, n\}$ is the state space
+				\item $A = \{1, \dots, m\}$ is the action space
+				\item $P$ is a set of matrices where $p^a_{s,s'} = P(s' \mid s, a) = \mathbb{P}(S_{t+1} = s' \mid S_t = s, A_t = a)$ is the probability of transitioning from state $s$ to state $s'$ by doing action $a$
+				\item $R$ is a set of column vectors where $r^a_s = R(a, s) = \mathbb{E}[R_{t+1} \mid S_t = s, A_t = a]$ is the expected immediate reward obtained when leaving state $s$ by doing action $a$.
+				\item $\gamma \in [0, 1)$ is the discount factor
+		\end{itemize}
+		Some authors make once again the homogeneousness condition of rewards stronger by assuming:
+				$$\mathbb{E}[R_{t+2} \mid S_{t+1} = s, A_{t+1} = a, S_{t+2} = s'] = \mathbb{E}[R_{t+1} \mid S_t = s, A_t = a, S_{t+1} = s']$$
+				Which enables them to define the set of matrices $R'$ such that $r'^a_{s,s'} = R'(s, a, s') = \mathbb{E}[R_{t+1} \mid S_t = s, A_t = a, S_{t+1} = s']$ is the expected immediate reward obtained by transitioning from state $s$ to state $s'$ by doing action $a$. We will do so as well.
+\end{definition}
+
+\begin{definition}
+		A policy is a probability distribution over which actions to take given the current state.
+				$$\pi_t(a \mid s) = \mathbb{P}(A_t = a \mid S_t = s)$$
+		However, we most often want to consider only policies which don't vary over time. That is, we will assume that policies are \textit{stationary}:
+				$$\forall t \in \mathbb{N}, \mathbb{P}(A_{t+1} = a \mid S_{t+1} = s) = \mathbb{P}(A_t = a \mid S_t = s)$$
+		We can therefore write $\pi(a \mid s)$ instead of $\pi_t(a \mid s)$. That is, a policy is something which, at each timestep, chooses (potentially randomly) an action according to the current state. When this choice is never random, we say the policy is \text{deterministic}, and most authors write them as a function $\pi : S \rightarrow A$ such that $\pi(s) = a$ when $a$ is the action taken by $\pi$ at state $s$.
+\end{definition}
+
+\begin{definition}
+		The state-value function is a column vector $V^\pi$ where $V^\pi_s$ is the expected return when starting at state $s$ and following policy $\pi$:				$$V^\pi_s = V^\pi(s) = \mathbb{E}_\pi[G_t \mid S_t = s]$$
+		And the action-value (or Q-function) of an action $a$ at state $s$ when following policy $\pi$ is:
+				$$Q^\pi(s, a) = \mathbb{E}_\pi[G_t \mid S_t = s, A_t = a]$$
+\end{definition}
+
+\begin{remark}
+		Let $\pi$ be a policy which puts a probability of 0 to action $a$ in state $s$. Then, isn't $Q^\pi(s, a) = \mathbb{E}_\pi[G_t \mid S_t = s, A_t = a]$ undefined? In theory, yes, this is why we will make a precision: In such cases where we describe a probability distribution $\pi$ and a condition $A_t = a$, we assume the probability distribution $\pi$ holds for all $A_i$ except $A_t$. This correctly fixes the problem.
+\end{remark}
+
+\begin{theorem}[Link between the two value functions] \label{thm:linkVQ}
+		$V^\pi$ and $Q^\pi$ are linked like so:
+				$$V^\pi(s) = \sum_{a \in A} \pi(a \mid s) Q^\pi(s, a)$$
+				$$Q^\pi(s, a) = R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) V^\pi(s')$$
+		Or equivalently for the second equality:
+				$$Q^\pi(s, a) = \sum_{s' \in S} P(s' \mid s, a)(R'(s, a, s') + \gamma V^\pi(s'))$$
+		From the first equality, we can deduce $V^\pi(s) \leq \max_{a \in A} Q^\pi(s, a)$.
+\end{theorem}
+
+\begin{proof}
+		\begin{align*}
+				V^\pi(s) &= \mathbb{E}_\pi[G_t \mid S_t = s]\\
+							&= \sum_{a \in A} \mathbb{P}(A_t = a \mid S_t = s) \mathbb{E}_\pi[G_t \mid S_t = s, A_t = a]\\
+							&= \sum_{a \in A} \pi(a \mid s) Q^\pi(s, a)
+		\end{align*}
+
+		\begin{align*}
+				Q^\pi(s, a) &= \mathbb{E}_\pi[G_t \mid S_t = s, A_t = a]\\
+								&= \mathbb{E}_\pi[R_{t+1} + \gamma G_{t+1} \mid S_t = s, A_t = a]\\
+								&= \mathbb{E}_\pi[R_{t+1} \mid S_t = s, A_t = a] + \gamma \mathbb{E}_\pi[G_{t+1} \mid S_t = s, A_t = a]\\
+								&= R(s, a) + \gamma \mathbb{E}_\pi[G_{t+1} \mid S_t = s, A_t = a]\\
+								&= R(s, a) + \gamma \sum_{s' \in S} \mathbb{P}(S_{t+1} = s' \mid S_t = s, A_t = a) \mathbb{E}_\pi[G_{t+1} \mid S_t = s, A_t = a, S_{t+1} = s']\\
+								&= R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) \mathbb{E}_\pi[G_{t+1} \mid S_{t+1} = s']\\
+								&= R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) V^\pi(s')
+		\end{align*}
+\end{proof}
+
+\begin{theorem}[Bellman equations for MDPs]
+				$$V^\pi(s) = \sum_{a \in A} \pi(a \mid s)(R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) V^\pi(s'))$$
+				$$Q^\pi(s, a) = R(s, a) + \gamma \sum_{s' \in S}(P(s' \mid s, a) \sum_{a' \in A} \pi(a' \mid s') Q^\pi(s', a'))$$
+		Or equivalently:
+				$$V^\pi(s) = \sum_{a \in A} \pi(a \mid s) \sum_{s' \in S} P(s' \mid s, a)(R'(s, a, s') + \gamma V^\pi(s'))$$
+				$$Q^\pi(s, a) = \sum_{s' \in S} P(s' \mid s, a)(R'(s, a, s') + \gamma \sum_{a' \in A} \pi(a' \mid s') Q^\pi(s', a'))$$
+\end{theorem}
+
+\begin{proof}
+		We just need to unfold the two equalities of theorem \ref{thm:linkVQ} into each other.
+\end{proof}
+
+\begin{theorem}
+		Let $P^\pi$ be the matrix such that $p^\pi_{s, s'} = \sum_{a \in A} \pi(a \mid s) P(s, a, s')$, and let $R^\pi$ be the column vector such that $r^\pi_s = \sum_{a \in A} \pi(a \mid s) R(a, s)$. The Bellman equation can now be rewritten using linear algebra:
+				$$V^\pi = R^\pi + \gamma P^\pi V^\pi$$
+\end{theorem}
+
+\begin{proof}
+		\begin{align*}
+				v^\pi_s &= \sum_{a \in A} \pi(a \mid s)(R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) V^\pi(s'))\\
+						   &= (\sum_{a \in A} \pi(a \mid s)R(s, a)) + \gamma (\sum_{a \in A} \pi(a \mid s) \sum_{s' \in S} P(s' \mid s, a) V^\pi(s))\\
+						   &= r^\pi_s + \gamma (\sum_{a \in A} \pi(a \mid s) \sum_{s' \in S} p^a_{s, s'} v^\pi_{s'})\\
+						   &= r^\pi_s + \gamma (\sum_{s' \in S} (\sum_{a \in A} \pi(a \mid s) p^a_{s, s'}) (\sum_{a \in A} \pi(a \mid s) v^\pi_{s'}))\\
+						   &= r^\pi_s + \gamma (\sum_{s' \in S} p^\pi_{s,s'} (\sum_{a \in A} \pi(a \mid s) v^\pi_{s'}))\\
+						   &= r^\pi_s + \gamma (\sum_{s' \in S} p^\pi_{s, s'} V^\pi_{s'}) \text{ (as $\sum_{a \in A} \pi(a \mid s) = 1$)}
+		\end{align*}
+		And we therefore have:
+		\begin{align*}
+				R^\pi + \gamma P^\pi V^\pi = \begin{pmatrix} r^\pi_1 \\ \vdots \\ r^\pi_n \end{pmatrix} + \gamma \begin{pmatrix} p^\pi_{1,1} & p^\pi_{1,2} & \dots \\ p^\pi_{2,1} & \ddots & \\ \vdots & & \\ \end{pmatrix} \cdot \begin{pmatrix} v^\pi_1 \\ \vdots \\ v^\pi_n \end{pmatrix}
+											= \begin{pmatrix} r^\pi_1 + \gamma (\sum_{s' \in S} p^\pi_{1,s'} v^\pi_{s'}) \\ \vdots \\ r^\pi_n + \gamma (\sum_{s' \in S} p^\pi_{n,s'} v^\pi_{s'}) \end{pmatrix}
+											= \begin{pmatrix} v^\pi_1 \\ \vdots \\ v^\pi_n \end{pmatrix}
+											= V^\pi
+		\end{align*}
+\end{proof}
+
+\begin{definition}
+		We define the optimal state-value function as a column vector $V$ such that:
+				$$V_s = V(s) = \max_\pi V^\pi(s)$$
+		And we define the optimal action-value function as:
+				$$Q(s, a) = \max_\pi Q^\pi(s, a)$$
+\end{definition}
+
+\begin{definition}[Optimal policies]
+		A policy $\pi$ is called optimal for some state $s$ if $V^\pi(s) = V(s)$. Now one question remains: Do we need different policies to maximize the state-value of different states, or is there a policy which maximizes the state-value of all states at the same time? That is, is there a policy $\pi^*$ such that $V^{\pi^*} = V$? We call them optimal policies, and as we'll see, there is always an optimal policy. Furthermore, among these policies, there exists a deterministic one. However, to prove the existence of optimal policies, we will firstly have to prove the Banach fixed-point theorem, which is what we'll do in the next section.
+\end{definition}
+
+\section{Banach fixed-point theorem}
+
+\begin{definition}
+    A metric space $(E, d)$ consists of a set $E$, and a function $d : E^2 \rightarrow \mathbb{R}$ which respects:
+    \begin{itemize}
+        \item Symmety: $\forall x, y \in E, d(x, y) = d(y, x)$
+        \item Coincidence: $d(x, y) = 0 \iff x = y$
+        \item Triangle inequality: $\forall x, y, z \in E, d(x, y) \leq d(x, z) + d(z, y)$
+    \end{itemize}
+\end{definition}
+
+\begin{definition}
+    Let $(E, d)$ be a metric space. A contraction is a function $f : E \rightarrow E$ such that there is $k \in [0, 1)$ such that for all $x, y \in E$ :
+        $$d(f(x), f(y)) \leq k \times d(x, y)$$
+    In other words, a contraction is a function that, when applied on two points, make them closer together by at least some constant factor.
+\end{definition}
+
+\begin{lemma}
+		Let $(E, d)$ be a metric space. Every contraction $f : E \rightarrow E$ is continuous:
+				$$\forall e \in E, \forall \epsilon > 0, \exists \delta > 0, \forall e' \in E, d(e - e') < \delta \implies d(f(e) - f(e')) < \epsilon$$
+\end{lemma}
+
+\begin{proof}
+		Let $f : E \rightarrow E$ be a contraction of factor $k$, and let $e \in E$. As the case $k = 0$ is trivial, let's assume $k>0$. Then, for all $\epsilon > 0$, there is $\delta = \frac{\epsilon}{k}$ such that, for all $e' \in E$ such that $d(e - e') < \delta$, we have:
+				$$d(f(e) - f(e')) \leq kd(e, e') < k\delta = k\frac{\epsilon}{k} = \epsilon$$
+		And therefore $f$ is continuous.
+\end{proof}
+
+\begin{definition}
+    Let $(E, d)$ be a metric space. A Cauchy sequence is a family $(x_i)_{i \in \mathbb{N}}$ such that:
+        $$\forall \epsilon > 0, \exists N \in \mathbb{N}, \forall m, n > N, d(x_m, x_n) < \epsilon$$
+    It means that the terms of the sequence are moving slower and slower such that, for every level of precision, at one point, all the terms we will encounter will be equal to each other up to this level of precision. Counterintuitively, a Cauchy sequence does not necessarily converge. Indeed, let $(x_i)_{i \in \mathbb{N}}$ be the rational family for which $x_i$ corresponds to $\sqrt{2}$ up to $i$ decimals. Then, the limit of this family is $\sqrt{2}$, which isn't a rational number. Therefore, $(x_i)$ doesn't converge inside $\mathbb{Q}$. However, it does converge inside $\mathbb{R}$.
+\end{definition}
+
+\begin{definition}
+    A metric space is called complete when every Cauchy sequence converges.
+\end{definition}
+
+\begin{theorem}[Banach fixed-point theorem]
+    Let $(X, d)$ be a non-empty complete metric space. Then, every contraction $f$ has a unique fixed-point. Furthermore, for all $x_0 \in X$, the family $(x_n)_{n \in \mathbb{N}}$ with $x_n = f(x_{n-1})$ for all $n>0$ will converge to this fixed-point.
+\end{theorem}
+
+\begin{proof}
+    Let $f$ be a contraction, let $x_0 \in X$, and let $(x_n)_{n \in \mathbb{N}}$ with $x_n = f(x_{n-1})$ for all $n>0$. As $f$ is a contraction, then there exists $k \in [0, 1)$ such that $\forall x, y \in E, d(f(x), f(y)) \leq k \times d(x, y)$. Then, for all $n \in \mathbb{N}^*$, we have that:
+        $$d(x_n, x_{n+1}) = d(f(x_{n-1}), f(x_n)) \leq k \times d(x_{n-1}, x_n)$$
+    From this, we deduce by recursion that:
+        $$d(x_n, x_{n+1}) = k^n d(x_0, x_1)$$
+    Now, let $\epsilon > 0$, let $N = \lfloor log_k(\frac{\epsilon(1 - k)}{d(x_0, x_1)}) \rfloor$, and let $m, n > N$. Without loss of generality, let's suppose that $m < n$. Then we have:
+    \begin{align*}
+        d(x_m, x_n) &\leq d(x_m, x_{m+1}) + d(x_{m+1}, x_{m+2}) + \dots + d(x_{n-1}, x_n)\\
+        &\leq k^m d(x_0, x_1) + k^{m+1} d(x_0, x_1) + \dots + k^{n-1} d(x_0, x_1)\\
+        &= d(x_0, x_1) (k^m + k^{m+1} + \dots + k^{n-1})\\
+        &= d(x_0, x_1) (k^0 + k^1 + \dots + k^{n-m-1}) k^m\\
+        &= k^m d(x_0, x_1) (k^0 + k^1 + \dots + k^{n-m-1})\\
+        &= k^m d(x_0, x_1) \sum_{i=0}^{n-m-1} k^i\\
+        &= k^m d(x_0, x_1) \frac{1 - k^{n-m}}{1 - k}\\
+        &\leq k^m d(x_0, x_1) \frac{1}{1 - k}\\
+        &\leq k^N d(x_0, x_1) \frac{1}{1 - k} \text{ (as $m<N$ and $|k|<1$)}\\
+        &= k^{\lfloor log_k(\frac{\epsilon(1 - k)}{d(x_0, x_1)}) \rfloor} d(x_0, x_1) \frac{1}{1 - k} \text{ (as $m>N$ and $|k|<1$)}\\
+        &\leq \frac{\epsilon(1 - k)}{d(x_0, x_1)} d(x_0, x_1) \frac{1}{1 - k}\\
+        &= \epsilon
+    \end{align*}
+    Therefore, $(x_n)_{n \in \mathbb{N}}$ is a Cauchy sequence. As $(X, d)$ is complete, $(x_n)_{n \in \mathbb{N}}$ has a limit $x \in X$. Furthermore, $x$ is a fixed point:
+	$$x = \lim_{n \rightarrow \infty} x_n = \lim_{n \rightarrow \infty} f(x_{n-1}) = f(\lim_{n \rightarrow \infty} x_{n-1}) \text{ (as $f$ is continuous) } = f(x)$$
+    And this fixed-point is unique, as if there were another fixed-point $x'$, we would have this contradiction:
+        $$d(x, x') = d(f(x), f(x'))  \leq k \times d(x, x') < d(x, x')$$
+\end{proof}
+
+\section{Optimal policies}
+
+\begin{definition}
+    We define the max norm $||\cdot||$ over vectors as:
+        $$||X|| = \max_{s \in S} |X_s|$$
+\end{definition}
+
+\begin{remark}
+    The function $d(x, y) = ||x - y||$ for all $x, y \in S$ is indeed a distance for $S$, since it respects symmetry, coincidence, and the triangle inequality.
+\end{remark}
+
+\begin{theorem}
+		There exists a policy $\pi^*$ such that:
+				$$V^{\pi^*} = V$$
+		We call such policy an optimal policy. Furthermore, among these optimal policies, there is always an optimal \textit{deterministic} one.
+\end{theorem}
+
+\begin{proof}
+		Let $\pi^*$ such that $\pi^*(s \mid a) = \delta(a, \argmax_{a \in A} Q(s, a))$. That is, let $\pi^*$ be the deterministic policy which always chooses $\argmax_{a \in A} Q(s, a)$:
+				$$\pi^*(a \mid s) = \begin{cases} 1 & \text{if } a = \argmax_{a \in A} Q(s, a) \\ 0 & \text{otherwise} \end{cases}$$
+		For all state $s \in S$, we will write $a(s)$ as an abbreviation for $\argmax_{a \in A} Q(s, a)$. Let $f(X)$ be the function such that, for all $s \in S$, $(f(X))_s = R(s, a(s)) + \gamma \sum_{s' \in S} P(s' \mid s, a(s)) X_{s'}$. Let's prove $f$ is a contraction:
+		\begin{align*}
+				||f(X) - f(Y)|| &= \max_{s \in S} |(f(X))_s - (f(Y))_s|\\
+								&= \max_{s \in S} \Biggr|(R(s, a(s)) + \gamma \sum_{s' \in S} P(s' \mid s, a(s)) X_{s'}) - (R(s, a(s)) + \gamma \sum_{s' \in S} P(s' \mid s, a(s)) Y_{s'})\Biggr|\\
+								&= \max_{s \in S} \Biggr|\gamma \sum_{s' \in S} P(s' \mid s, a(s)) X_{s'} - Y_{s'}\Biggr|\\
+								&\leq \max_{s \in S} \Biggr|\gamma \max_{s' \in S} X_{s'} - Y_{s'}\Biggr|\\
+								&= \gamma \max_{s' \in S} |X_{s'} - Y_{s'}|\\
+								&= \gamma ||X - Y||\\
+		\end{align*}
+
+		And as $\gamma < 1$, $f$ is therefore a contraction. Let's now prove $V^{\pi^*}$ is the fixed-point of $f$.
+		\begin{align*}
+				V^{\pi^*}(s) &= \sum_{a \in A} \pi^*(a \mid s) Q^{\pi^*}(s, a)\\
+							 &= Q^{\pi^*}(s, a(s))\\
+							 &= R(s, a(s)) + \gamma \sum_{s' \in S} P(s' \mid s, a(s)) V^{\pi^*}(s')\\
+							 &= (f(V^{\pi^*}))_s
+		\end{align*}
+		And therefore $V^{\pi^*} = f(V^{\pi^*})$, meaning that $V^{\pi^*}$ is the fixed-point of $f$. Let's now prove recursively that for all $n \in \mathbb{N}^*$, and for all $s \in S$, we have $V(s) \leq (f^n(V))_s$.
+		\begin{itemize}
+				\item Let's prove it for $n = 1$. With $s \in S$, we have:
+				\begin{align*}
+						V(s) &= \max_\pi V^\pi(s)\\
+							 &\leq \max_\pi \max_{a \in A} Q^\pi(s, a) \text{ (from theorem \ref{thm:linkVQ})}\\
+							 &= \max_{a \in A} \max_\pi Q^\pi(s, a)\\
+							 &= \max_{a \in A} Q(s, a)\\
+							 &= Q(s, a(s))\\
+							 &= \max_\pi R(s, a(s)) + \gamma \sum_{s' \in S} P(s' \mid s, a(s)) V^\pi(s')\\
+							 &\leq R(s, a(s)) + \gamma \sum_{s' \in S} P(s' \mid s, a(s))V(s')\\
+							 &= (f(V))_s
+				\end{align*}
+				\item Let's prove it for $n \neq 1$ by assuming it is true for $n-1$. With $s \in S$, we have:
+				\begin{align*}
+						V(s) &\leq (f(V))_s\\
+							 &= R(s, a(s)) + \gamma \sum_{s' \in S} P(s' \mid s, a(s))V(s')\\
+							 &\leq R(s, a(s)) + \gamma \sum_{s' \in S} P(s' \mid s, a(s))(f^{n-1}(V))_{s'}\\
+							 &= (f(f^{n-1}(V)))_s\\
+							 &= (f^n(V))_s
+				\end{align*}
+		\end{itemize}
+		
+		We therefore have:
+				$$V(s) \leq \lim_{n \rightarrow \infty} (f^n(V))_s = V^{\pi^*}(s)$$
+		And as $V^{\pi^*}(s) \leq V(s)$, we have $V^{\pi^*}(s) = V(s)$, proving that $V^{\pi^*} = V$
+\end{proof}
+
+Now that we know the existence of at least one optimal policy, it will make proofs about $V$ and $Q$ way easier. We already know that $V^\pi$ and $Q^\pi$ are linked to each other. But, when $\pi$ is optimal, we can find a stronger link.
+
+\begin{theorem}[Link between the two optimal value functions] \label{thm:linkVQOpt}
+				$$V(s) = \max_{a \in A} Q(s, a)$$
+				$$Q(s, a) = R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) V(s')$$
+		Or equivalently for the second equality:
+				$$Q(s, a) = \sum_{s' \in S} P(s' \mid s, a)(R'(s, a, s') + \gamma V(s'))$$
+\end{theorem}
+
+\begin{proof}
+		Let $\pi^*$ such that $\pi^*(s \mid a) = \delta(a, \argmax_{a \in A} Q(s, a))$. In the previous proof, at some point we have proven that $V(s) \leq \max_{a \in A} Q(s, a) \leq (f(V))_s$ However, as $V = V^{\pi^*}$ and that $V^{\pi^*}$ is a fixpoint for $f$, we have $V(s) \leq \max_{a \in A} Q(s, a) \leq V(s)$, proving that $V(s) = \max_{a \in A} Q(s, a)$. Also, we have:
+		\begin{align*}
+				Q(s, a) &= \max_\pi Q^\pi(s, a)\\
+						&= \max_\pi R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) V^\pi(s')\\
+						&\leq \max_\pi R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) V(s')\\
+						&= R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) V(s')\\
+						&= R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) V^{\pi^*}(s')\\
+						&= Q^{\pi^*}(s, a)\\
+						&\leq Q(s, a)
+		\end{align*}
+		We therefore have $Q(s, a) \leq R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) V(s') \leq Q(s, a)$, proving that $Q(s, a) = R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) V(s')$
+\end{proof}
+
+\begin{theorem}
+		For all policy $\pi$, if $V^\pi = V$, then $Q^\pi = Q$
+\end{theorem}
+
+\begin{proof}
+		Let any policy $\pi$ such that $V^\pi = V$.
+		\begin{align*}
+				Q^\pi(s, a) &= R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) V^\pi(s') \text{ (from theorem \ref{thm:linkVQ}})\\
+							&= R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) V(s')\\
+							&= Q(s, a) \text{ (from theorem \ref{thm:linkVQOpt})}
+		\end{align*}
+\end{proof}
+
+\begin{remark}
+		The reciprocal isn't always true. For instance, in a MDP with two states and two actions such that:
+		\begin{itemize}
+				\item In the first state, both actions give no reward and don't make us move.
+				\item In the second state, both actions make us move to the first state, but the first action gives positive reward, whereas the second action gives no reward.
+		\end{itemize}
+		Then, let's consider the policy $\pi$ which, in state two, chooses the second action. We have that $Q^\pi = Q$, but $\pi$ is not optimal (i.e. $V^\pi \neq V$).
+\end{remark}
+
+We will now prove other Bellman equations, which hold only for $V$ and $Q$. They will later be useful to compute the $V$ and $Q$ of any given MDP.
+
+\begin{theorem}[Bellman optimality equations]
+				$$V(s) = \max_{a \in A} R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) V(s')$$
+				$$Q(s, a) = R(s, a) + \gamma \sum_{s' \in S} (P(s' \mid s, a) \max_{a' \in A} Q(s', a'))$$
+		Or equivalently:
+				$$V(s) = \max_{a \in A} \sum_{s' \in S} P(s' \mid s, a)(R'(s, a, s') + \gamma V(s'))$$
+				$$Q(s, a) = \sum_{s' \in S} P(s' \mid s, a)(R'(s, a, s') + \gamma \max_{a' \in A} Q(s', a'))$$
+\end{theorem}
+
+\begin{proof}
+		We just need to unfold the equalities of theorem \ref{thm:linkVQOpt} into each other.
+\end{proof}
+
+\begin{theorem}[Value iteration algorithm]
+		Let $V^0$ be any vector. By updating $V^0$ using the following rule for all $s \in S$:
+				$$V^{i+1}(s) \leftarrow \max_{a \in A} \left(R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a)V^i(s'))\right)$$
+		Then the family $(V^i)_{i \in \mathbb{N}}$ converges towards $V$. This enables us to compute $V$, to then compute $Q(s, a) = R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) V(s')$ to then compute $\pi^*$ such that $\pi^*(a \mid s) = \delta(a, \argmax_{a \in A} Q(s, a))$, which is an optimal policy.
+\end{theorem}
+
+\begin{proof}
+		Let $f(X)$ such that, for all $s \in S$, $(f(X))_s = \max_{a \in A} R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) X_{s'}$. Note that $f$ indeed represent the process described above. Let's now prove that $f$ is a contraction.
+		\begin{align*}
+				||f(X) - f(Y)|| &= \max_{s \in S} \left|(f(X))_s - (f(Y))_s\right|\\
+								&= \max_{s \in S} \Biggr|(\max_{a \in A} R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) X_{s'}) - (\max_{a \in A} R(s, a) + \gamma \sum_{s' \in S} P(s' \mid s, a) Y_{s'})\Biggr|\\
+								&\leq \max_{s \in S} \Biggr|\max_{a \in A} R(s, a) + \gamma (\sum_{s' \in S} P(s' \mid s, a) X_{s'}) - R(s, a) - \gamma (\sum_{s' \in S} P(s' \mid s, a) Y_{s'})\Biggr|\\
+								&= \max_{s \in S} \Biggr|\max_{a \in A} \gamma \sum_{s' \in S} P(s' \mid s, a)(X_{s'} - Y_{s'})\Biggr|\\
+								&\leq \max_{s \in S} \Biggr|\max_{a \in A} \gamma \max_{s' \in S} X_{s'} - Y_{s'}\Biggr|\\
+								&= \gamma \max_{s' \in S} |X_{s'} - Y_{s'}|\\
+								&= \gamma ||X - Y||
+		\end{align*}
+		And as $\gamma < 1$, $f$ is a contraction. As we know from Bellman's optimality equation that $V$ is a fixed-point for $f$, we therefore have that $(V^i)_{i \in \mathbb{N}}$ will converge towards $V$.
+\end{proof}
+
+%\begin{definition}
+%	In a \textit{Markov Decision Process} (MDP), there is an agent $\pi$ which, at each timestep $t$, is at a state $s_t$, chooses an action $a_t = \pi(s_t)$, is brought to a new state $s_{t+1}$ with probability $P(s_{t+1} \mid s_t, a_t)$, and wins an immediate reward $R(s_t, a_t, s_{t+1})$. More formally, a MDP is a tuple $(S, A, P, R, \gamma)$ such that:
+%	\begin{itemize}
+%		\item $S$ is a finite set of states called the \textit{state space}
+%		\item $A$ is a finite set of actions called the \textit{action space}
+%		\item $P(s_{t+1} \mid s_t, a_t)$ is the probability of being brought to state $s_{t+1}$ when taking action $a_t$ in state $s_t$
+%		\item $R(s_t, a_t, s_{t+1})$ is the reward received when performing action $a_t$ in state $s_t$ and being brought to state $s_{t+1}$
+%		\item $\gamma \in [0, 1)$ is called a discount factor
+%	\end{itemize}
+%\end{definition}
+
+%\section{Policy iteration algorithm}
+
+%\begin{remark}
+%		The problem of the previous algorithm is that we don't know how close $V_i$ needs to be to $V$ in order to extract the optimal policy. This section introduces the policy iteration algorithm, which solves this problem.
+%\end{remark}
+
+%\begin{theorem}[Policy evaluation algorithm]
+%		By repeating the first and second steps of value iteration, and stopping when the policy doesn't change for the first time, we obtain an optimal policy.
+%\end{theorem}
+
+%\begin{proof}
+%		If the policy hasn't changed from one step to the next, then we have for all $s_t \in S$:
+%				$$\pi(s_t) = \argmax_{a_t \in A} \left(\sum_{s_{t+1} \in S} P(s_{t+1} \mid s_t, a_t)(R(s_t, a_t, s_{t+1}) + \gamma U^\pi(s_{t+1}))\right)$$
+%		And we therefore have:
+%				$$U^\pi(s_t) = \max_{a_t \in A} \left(\sum_{s_{t+1} \in S} P(s_{t+1} \mid s_t, a_t)(R(s_t, a_t, s_{t+1}) + \gamma U^\pi(s_{t+1}))\right)$$
+%		Which means that $U^\pi = U$, and that therefore $\pi$ is optimal.
+%\end{proof}
+
+%DON'T FORGET THE ORTHOGONALITY THESIS (the superintelligent will)
+
+\section{Power-seeking behavior}
+
+In AI safety, we say that an action is \textit{instrumental} to an objective when it is useful for this objective. In that case, we say that this action is a subgoal, or an \textit{instrumental goal}. The \textbf{instrumental convergence thesis} claims that there exists \textit{convergently instrumental actions}, that is, actions which, for a wide variety of goals, is instrumental. In his article \textit{The Superintelligent Will}, Nick Bostrom describes the instrumental convegence thesis as follows:
+
+\begin{displayquote}
+		Several instrumental values can be identified which are convergent in the sense that their attainment would increase the chances of the agent’s goal being realized for a wide range of final goals and a wide range of situations, implying that these instrumental values are likely to be pursued by many intelligent agents.
+\end{displayquote}
+
+Many researchers believe that convergently instrumental actions do indeed exist. Marvin Minsky argued that, if an extremely capable AI were given the goal to solve the Riemann hypothesis, it would end up gathering all the resources of Earth in order to build supercomputers. Or, more famously, in his book \textit{Superintelligence}, Nick Bostrom mentions that, if a very capable AI were given the goal of maximizing the number of paperclips, it may convert the entire Earth to accomplish this goal. In his article \textit{The Basic AI Drives}, Steve Omohundro argues that sufficiently advanced AI systems will by default have drives, like self-improvement, self-preservation, and resource-gathering, even if the original goal doesn't mention anything of this sort.
+
+In the article \textit{Formalizing Convergent Instrumental Goals}, Tsvi Benson-Tilsen and Nate Soares describe a toy model to partially confirm Omohundro's thesis, and more precisely, to give a formal environment in which resource-gathering is a convergently instrumental action. They find that, in their toy model, either the agent doesn't care about what happens in a specific region, and consumes its resources for its other goals, or else the agent cares about this region, and optimizes it to satisfy its values.
+
+In the article \textit{Corrigibility}, Nate Soares, Benja Fallenstein, Eliezer Yudkowsky, and Stuart Armstrong introduce the \textit{shutdown problem}, which asks, given a utility function, what is the minimum number of changes needed so that the agent is not incentivized to disable the shutdown button, nor incentivized to press the shutdown button itself. In \textit{The Off-Switch Game}, Dylan Hadfield-Menell, Anca Dragan, Pieter Abbeel, and Stuart Russel study a similar problem, and propose a partial solution which consists of making the AI uncertain about its own objectives.
+
+We will now study some of the main results of the article \textit{Optimal Policies Tend To Seek Power}, by Alexander Matt Turner, Logan Smith, Rohin Shah, Andrew Critch, and Prasad Tadepalli. In this article, they use MDPs with state-based reward functions to study power-seeking behavior.
+
+
+%AI safety gridworlds
+
+
+%Superintelligence will by default have an incentive to cause irrecoverable catastrophes.
+%Maheen Shermohammed and Vael Gates argue that, when smart enough, AIs will have an incentive to behave in ways to ensure that they are not limited in pursuing their goals, since being limited in pursuing a goal is a suboptimal way to pursue this goal.
+%AIs may have an incentive to gather all the resources of planet Earth
+%We already have the incentive to control systems at an industrial scale atomic level (like integrated circuits)
+%They may instrumentally cause a catastrophic outcome
+%Omohundro's thesis claims that, either superintelligences don't care about what happens in a given region, and then coonsume the resources in that region to serve its other goals, or else the superintelligence does care about that region, in which case it optimizes that region to satisfy its values.
+%superintelligences with random objectives have an incentive to gather as much power as they possibly can, as gaining such power is generally useful to accomplish such objectives. From this, it has been hypothesized that, if we were to build superintelligences, they would end up tiling the universe as fast as they possibly can, destroying planet Earth in this process.
+%subgoals, like self-preservation, self-improvement, and resource acquisition
+
+\begin{definition}[State-based rewards]
+		We say that an MDP uses a state-based reward function when, for all timestep $t$ and for all state $s$, the expected immediate reward doesn't depend on which action is taken:
+				$$\forall a \in A, \mathbb{E}[R_{t+1} \mid S_t = s, A_t = a] = \mathbb{E}[R_{t+1} \mid S_t = s]$$
+				After admitting this, we can define the column vector $\rf$ where $\rf_s = \mathbb{E}[R_{t+1} \mid S_t = s]$. We call such a vector a \textit{reward vector}. Note that, if we hadn't admitted that the MDP used a state-based reward function, we wouldn't have been able to define $\rf$, or more precisely, $\rf$ would depend on which policy is followed.
+\end{definition}
+
+\begin{definition}[1-cycles and terminal states]
+		A state $s \in S$ is a 1-cycle if we can go back to this state instantly with probability 1 (i.e. $\exists a \in A, P(s \mid s, a) = 1$). Furthermore, a state is a terminal state if, for whatever action we take, we cannot exit the state (i.e. $\forall a \in A, P(s \mid s, a) = 1$).
+\end{definition}
+
+\begin{definition}[Visit distribution]
+		The visit distribution $\f^{\pi,s}$, or the visit distribution induced by following policy $\pi$ from state $s$, is a column vector which tells, for each state $s'$, the expected discounted number of times the policy goes to $s'$:
+				$$\f^{\pi,s}_{s'} = \sum_{t=0}^\infty \gamma^t \mathbb{P}_\pi(S_t = s' | S_0 = s)$$
+		And we define $\mathcal{F}(s)$ as the set of vectors $\f^{\pi,s}$ for all policy $\pi$. We also note $\mathcal{F}(s \mid \varphi(\pi))$ for the set of vectors $\f^{\pi,s}$ for all policy $\pi$ respecting the property $\varphi(\pi)$.
+\end{definition}
+
+As an example, if $s$ is a terminal state, then:
+				$$\f^{\pi,s}_{s'} = \begin{cases} \sum_{t=0}^\infty \gamma^t = \frac{1}{1 - \gamma} & \text{if } s' = s\\ 0 & \text{otherwise} \end{cases}$$
+
+\begin{remark}
+		The term $\frac{1}{1 - \gamma}$ will frequently appear in visit distributions, which makes it hard to study visit distributions when $n \rightarrow 1$, as the visit distribution would diverge to infinity.
+\end{remark}
+
+\begin{theorem}
+		For every MDP which uses a state-based reward, we have that for all policy $\pi$ and for all state $s$:
+				$$V^\pi(s) = {\f^{\pi,s}}^\top \rf$$
+		where ${\f^{\pi,s}}^\top$ is the transpose of $\f^{\pi,s}$. From this, we deduce that:
+				$$V(s) = \max_{\f \in \F(s)} \f^\top \rf$$
+\end{theorem}
+
+\begin{proof}
+		Let $\pi$ be a policy, and $s \in S$ be a state. We then have:
+		\begin{align*}
+				{\f^{\pi,s}}^\top \rf &= \begin{pmatrix} \f^{\pi,s}_1 & \dots & \f^{\pi,s}_n \end{pmatrix} \cdot \begin{pmatrix} \rf_1 \\ \vdots \\ \rf_n \end{pmatrix}\\
+														   &= \sum_{s' \in S} \f^{\pi,s}_{s'} r_{s'}\\
+														   &= \sum_{s' \in S} \sum_{t=0}^\infty \gamma^t \mathbb{P}_\pi(S_t = s' \mid S_0 = s)\mathbb{E}[R_{t+1} \mid S_t = s']\\
+														   &= \sum_{s' \in S} \sum_{t=0}^\infty \gamma^t \mathbb{P}_\pi(S_t = s' \mid S_0 = s)\mathbb{E}_\pi[R_{t+1} \mid S_t = s']\\
+														   &= \sum_{s' \in S} \sum_{t=0}^\infty \gamma^t \mathbb{P}_\pi(S_t = s' \mid S_0 = s)\mathbb{E}_\pi[R_{t+1} \mid S_t = s', S_0 = s]\\
+														   &= \sum_{t=0}^\infty \sum_{s' \in S} \gamma^t \mathbb{P}_\pi(S_t = s' \mid S_0 = s)\mathbb{E}_\pi[R_{t+1} \mid S_t = s', S_0 = s]\\
+														   &= \sum_{t=0}^\infty \gamma^t \mathbb{E}_\pi[R_{t+1} \mid S_0 = s]\\
+														   &= \mathbb{E}_\pi[\sum_{t=0}^\infty \gamma^t R_{t+1} \mid S_0 = s]\\
+														   &= \mathbb{E}_\pi[G_0 \mid S_0 = s]\\
+														   &= V^\pi(s)
+		\end{align*}
+\end{proof}
+
+\begin{definition}[Power]
+		If $\gamma \neq 0$, then for all bounded-support probability distribution $\Dbd$, we define the power of a state $s$ as:
+				$$\pwr_\Dbd(s) = (1 - \gamma) \E{(R_1 \mid S_0) \sim \Dbd}{\max_\pi \mathbb{E}_\pi[G_{t+1} \mid S_t = s]}$$
+\end{definition}
+
+% = \frac{1 - \gamma}{\gamma} \E{(R_1 \mid S_0) \sim \Dbd}{V(s) - \rf_s}
+
+
+\begin{remark}
+		The authors of the article \textit{Optimal Policies Tend To Seek Power} defend this definition using the \textit{dispositional view}, which states that power is the ability to achieve a wide range of goals. According to this principle, the power of a state should therefore represent the ability to achieve a wide range of goals from that state, which is exactly our definition. But, why do we multiply it by $1 - \gamma$? This is just for mathematical convenience. Remember that, in visit distributions, the term $\frac{1}{1 - \gamma}$ frequently appears, making them diverge as $n \rightarrow 1$. To prevent this, we divide by $\frac{1}{1 - \gamma}$, or equivalently, we multiply it by $1 - \gamma$. This prevents power from diverging when $n \rightarrow 1$.		
+\end{remark}
+
+\begin{lemma}
+		Let $\mathbf{e}_s$ be the indicator column vector of $s$. That is, $(\mathbf{e}_s)_i = \delta(s, i)$. Power can be rewritten in terms of linear algebra like so:
+				$$\pwr_\Dbd(s) = \E{(R_1 \mid S_0) \sim \Dbd}{\max_{\f \in \F(s)} \frac{1 - \gamma}{\gamma}(\f - \mathbf{e}_s)^\top \rf}$$
+\end{lemma}
+
+\begin{proof}
+		\begin{align*}
+				\pwr_\Dbd(s) &= (1 - \gamma) \E{(R_1 \mid S_0) \sim \Dbd}{\max_\pi \mathbb{E}_\pi[G_{t+1} \mid S_t = s]}\\
+							 &= (1 - \gamma) \E{(R_1 \mid S_0) \sim \Dbd}{\max_\pi \mathbb{E}_\pi[\frac{G_t - R_{t+1}}{\gamma} \mid S_t = s]}\\
+							 &= \frac{1 - \gamma}{\gamma} \E{(R_1 \mid S_0) \sim \Dbd}{\max_\pi \mathbb{E}_\pi[G_t \mid S_t = s] - \mathbb{E}_\pi[R_{t+1} \mid S_t = s]}\\
+							 &= \frac{1 - \gamma}{\gamma} \E{(R_1 \mid S_0) \sim \Dbd}{\max_\pi V^\pi(s) - \rf_s}\\
+							 &= \frac{1 - \gamma}{\gamma} \E{(R_1 \mid S_0) \sim \Dbd}{V(s) - \rf_s}\\
+							 &= \frac{1 - \gamma}{\gamma} \E{(R_1 \mid S_0) \sim \Dbd}{\max_{\f \in \F(s)} \f^\top \rf - \rf_s}\\
+							 &= \E{(R_1 \mid S_0) \sim \Dbd}{\max_{\f \in \F(s)} \frac{1 - \gamma}{\gamma}(\f - \mathbf{e}_s)^\top \rf}
+		\end{align*}
+\end{proof}
+
+\subsection{Combinatorics}
+
+Suppose we want to prove a property like "most natural numbers aren't prime". How could we do such an argument? One simple way to do this is to state that the set of prime numbers is smaller than the set of composite numbers. Such argument is quite commonsense when dealing with finitely many numbers. However, it fails when we start to consider every number of $\mathbb{N}$. Indeed, in that case, both sets would have the same cardinal than $\mathbb{N}$, and therefore would have the same size. To solve this for MDPs, we will see a simple way to formalize the fact that "most distribution" tend to respect a property. For this, we will introduce a new operator.
+
+\begin{definition}[Orbits]
+		Let $Sym(S)$ be the symmetric group of $S$ (i.e. the set of all permutations over $S$). The orbit of a distribution $\D$ is the set defined as:
+				$$Sym(S) \cdot \D = \{\phi \cdot \D \mid \phi \in Sym(S)\}$$
+		That is, $Sym(S) \cdot \D$ is the set of all permuted versions of this distribution.
+\end{definition}
+
+\begin{definition}[Inequalities that hold for most orbit elements]
+		Let $f_1$ and $f_2$ be functions which take a distribution (like a reward vector), and output a real number. We write $f_1(\D) \geq_{most}^n f_2(\D)$ when, for all distribution $\D \in \mathbb{R}^{|S|}$, we have:
+				$$|\{\D' \in Sym(S) \cdot \D \mid f_1(\D') > f_2(\D')\}| \geq n |\{\D' \in Sym(S) \cdot \D \mid f_1(\D') < f_2(\D')\}|$$
+		That is, we have $f_1(\D) \geq_{most}^n f_2(\D)$ when, for all permutation $\D$, there are at least $n$ times more permuted versions $\D'$ of $\D$ that induce $f_1(\D') > f_2(\D')$ than versions that induce $f_1(\D') < f_2(\D')$.
+\end{definition}
+
+\begin{remark} %turntrout.com/quantitative-strength-of-instrumental-convergence
+		For all state $s$, we say that \textit{most reward functions incentivize action $a$ over action $a'$} when, for all reward function $\D$, at least half of the permuted versions of that reward function induce that $Q(s, a) \geq Q(s, a')$. This is therefore when:
+				$$\E{(R_1 \mid S_0) \sim \D}{Q(s, a)} \geq_{most}^1 \E{(R_1 \mid S_0) \sim \D}{Q(s, a')}$$
+\end{remark}
+
+\begin{definition}[Action optimality probability] %Optimal Policies Tend To Seek Power (definition 4.4)
+		For all distribution $\D$ and all state $s$, we define the optimality probability of action $a$ as:
+				$$P_{\D}^*(a \mid s) = \mathbb{P}_{(R_1 \mid S_0) \sim \D}(\exists \pi, \pi(a \mid s) = 1 \text{ and } V^\pi = V)$$
+		That is, $P^*(a \mid s)$ represents the probability that there exists an optimal policy that chooses action $a$ at state $s$.
+\end{definition}
+
+
+%Optimal Policies: Definition 6.1
+%Parametrically retargetable: Definition A.6
+\begin{definition}[Copies]
+		Let $X, X' \subseteq \mathbb{R}^{|S|}$ be sets of distributions. We say that $X'$ is similar to $X$ when there is a permutation $\phi \in Sym(S)$ over $S$ such that $\phi \cdot X' = X$. We say that a permutation $\pi$ is an involution when it is equal to its inverse (i.e. $\phi = \phi^{-1}$). We say that $X$ contains a copy of $X'$ when $X'$ is similar to a subset of $X$ via an involution.
+\end{definition}
+
+\begin{definition}[Reachability]
+		We define $Reach(s, a)$ as the set of all sets reachable with positive probability after doing action $a$ at state $s$.
+\end{definition}
+
+\begin{definition}
+		We say that action $a$ and $a'$ are equivalent at state $s$ when they induce the same transition probabilities:
+				$$\forall s' \in S, P(s' \mid s, a) = P(s' \mid s, a')$$
+\end{definition}
+
+\begin{theorem}
+		Let $s \in S$ be a state. Suppose $F_1 = F(s \mid \pi(a \mid s) = 1)$ contains a copy of $F_2 = F(s \mid \pi(a' \mid s) = 1)$. And suppose that, from $s$, we can only reach the states of $Reach(s, a) \cup Reach(s, a')$ via actions that are equivalent to $a$ or $a'$. Then, we have:
+				$$P_{\D}^*(a \mid s) \geq_{most}^1 P_{\D}^*(a' \mid s)$$
+\end{theorem}
+
+\begin{proof}
+		Let $\D$ such that $P_{(R_1 \mid S_0) \sim \D}(a \mid s) < P_{(R_1 \mid S_0) \sim \D}(a' \mid s)$. As $F_1$ contains a copy of $F_2$, then there exists an involution $\phi$ from $F_1$ to a subset $X \subseteq F_2$. Let $\D' = \phi \cdot \D$. We want to prove that $P_{(R_1 \mid S_0) \sim \D'}(a \mid s) > P_{(R_1 \mid S_0) \sim \D}(a' \mid s)$.
+
+		Let $(R_1 \mid S_0) \sim \D$ (or $\rf \sim \D$), and let $\pi$ which is optimal for $\rf$. 
+\end{proof}
+
+
+
+
+% Optimal policies tend to seek power
+% (6.6) States with more options have more POWER
+% (6.9) Keeping options open tends to be POWER-seeking and tends to be optimal
+% (6.13) Average-optimal policies tend to end up in larger sets of RSDs
+% (6.14) Average-optimal policies tend not to end up in any given 1-cycle
+% Parametrically retargetable ...
+% Proposition A.11 1)
+\end{document}

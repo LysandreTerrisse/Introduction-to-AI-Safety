@@ -1,0 +1,535 @@
+\documentclass{article}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\renewcommand*{\proofname}{Proof}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\theoremstyle{example}
+\newtheorem{example}{Example}[section]
+\DeclareMathOperator*{\argmax}{arg\,max}
+\usepackage{fullpage}
+\usepackage{outlines}
+\allowdisplaybreaks
+
+\newcommand{\lambdafunction}[2][1]{
+		\let\tmp\relax
+		\newcommand{\tmp}[#1]{#2}
+		\tmp
+}
+
+
+\newcommand{\ffmatrix}[3]{
+		\begin{bmatrix}
+				\lambdafunction[2]{#1}{1}{1} & \lambdafunction[2]{#1}{1}{2} & \cdots & \lambdafunction[2]{#1}{1}{#3}\\
+				\lambdafunction[2]{#1}{2}{1} & \lambdafunction[2]{#1}{2}{2} & \cdots & \lambdafunction[2]{#1}{2}{#3}\\
+				\vdots & \vdots & \ddots & \vdots\\
+				\lambdafunction[2]{#1}{#2}{1} & \lambdafunction[2]{#1}{#2}{2} & \cdots & \lambdafunction[2]{#1}{#2}{#3}\\
+		\end{bmatrix}
+}
+
+\newcommand{\fmatrix}[3]{\begin{bmatrix} #1_{1 1} & #1_{1 2} & \cdots & #1_{1 #3} \\ #1_{2 1} & #1_{2 2} & \cdots & #1_{2 #3} \\ \vdots & \vdots & \ddots & \vdots \\ #1_{#2 1} & #1_{#2 2} & \cdots & #1_{#2 #3} \end{bmatrix}}
+\newcommand{\fvector}[2]{\begin{bmatrix} #1_1 \\ #1_2 \\ \vdots \\ #1_{#2} \end{bmatrix}}
+
+\newcommand{\zeromatrix}{\ffmatrix{0}{nothing}{nothing}}
+\newcommand{\identitymatrix}{\begin{bmatrix} 1 & 0 & \cdots & 0 \\ 0 & 1 & \cdots & 0 \\ \vdots & \vdots & \ddots & \vdots \\ 0 & 0 & \cdots & 1 \end{bmatrix}}
+
+
+\title{Algebraic Structures}
+\author{Lysandre Terrisse}
+
+\begin{document}
+\maketitle
+
+\section{Algebraic structures}
+
+In mathematics, we often work on a set of objects and prove theorems about these objects. For instance, for numbers, we may prove the three remarkable identities:
+		$$(a + b)^2 = a^2 + 2ab + b^2$$
+		$$(a - b)^2 = a^2 - 2ab + b^2$$
+		$$(a + b)(a - b) = a^2 - b^2$$
+		But now, suppose instead that instead of working with the set $\mathbb{R}$ of real numbers, we work with the set $\mathbb{Z}/12\mathbb{Z}$, which intuitively is the set $\{0, \dots, 11\}$ for which the number after 10 goes back to zero, a bit like the hours on a clock (except that the hours on a clock are numbered from 1 to 12). Then, do these remarkable identities still hold? Or, if instead we work with the set of polynomial functions, do these identities hold? Or if we work with square matrices? Or the complex numbers? To avoid repeating proofs over and over for each such set, we will instead define \textit{algebraic structures}, which are general enough to capture all of these sets while making enough assumptions to prove important theorems.
+
+\begin{definition}[Magma]
+		$(E, \star)$ is a magma iff:
+		\begin{itemize}
+				\item $E$ is a set
+				\item $E$ is stable over $\star$: $\forall x, y \in E, x \star y \in E$
+		\end{itemize}
+\end{definition}
+
+\begin{remark}
+		Although magmas are the most general algebraic structures, they lack some properties we would want to study. For instance, in magmas, it is not guaranteed that $(x \star y) \star z = x \star (y \star z)$. This is why we will introduce the notion of monoids.
+\end{remark}
+
+\begin{definition}[Monoid]
+		$(E, \star)$ is a monoid iff:
+		\begin{itemize}
+				\item $(E, \star)$ is a magma
+				\item $\star$ is associative for $E$: $\forall x, y, z \in E, (x \star y) \star z = x \star (y \star z)$
+				\item $E$ has an identity element for $\star$: $\exists e \in E, \forall x \in E, x \star e = e \star x = x$
+		\end{itemize}
+\end{definition}
+
+We call $e_\star$ the identity element of $\star$. However, this notation makes sense only if the identity element of $\star$ is unique. The next theorem shows that this is always the case.
+
+\begin{theorem}[Monoids have a single identity element]
+		Let $(E, \star)$ be a monoid. Then there is a unique identity element in $E$.
+\end{theorem}
+
+\begin{proof}
+		From the definition of monoids, we already know that there is an identity element in $E$. We therefore just need to prove that this identity element is unique. Let $e$ and $e'$ be the identity elements of the monoid $(E, \star)$. Then, we have:
+				$$e' = e' \star e = e$$
+		Proving the uniqueness of the identity element.
+\end{proof}
+
+When doing operations, like additions over $\mathbb{Z}$, we may sometimes want to have an inverse operation, like substraction. Instead of introducing a binary operator for substraction, we may instead add \textit{additive inverses}. That is, instead of adding the $-$ operator to compute $5 - 3$, we may instead add $-3$ to compute $5 + (-3)$. We will now see more closely the notion of inverses in monoids.
+
+\begin{definition}[Inverse and invertible element]
+		Let $(E, \star)$ be a monoid, and let $x \in E$. We say that $l \in E$ is a left-inverse of $x$ according to $\star$ if and only if:
+				$$l \star x = e_\star$$
+		Similarly, $r \in E$ is a right-inverse of $x$ according to $\star$ if and only if:
+				$$x \star r = e_\star$$
+		And $y \in E$ is an inverse of $x$ according to $\star$ if and only if:
+				$$x \star y = y \star x = e_\star$$
+		In the last case, we say that $x$ is invertible. We call $E^\times_\star$ (or simply $E^\times$) the set of all invertible elements of $E$.
+\end{definition}
+
+\begin{theorem}[Left and right inverses are equal to each other if they both exist] %https://proofwiki.org/Inverse_in_Monoid_is_Unique	
+		Let $(E, \star)$ be a monoid. If an element $x \in E$ has a left-inverse and a right-inverse, then all left and right inverses of $x$ are all equal to each other.
+\end{theorem}
+
+\begin{proof}
+		Let $x \in E$. Suppose that $x$ has a left-inverse and a right-inverse. Now, let $l \in E$ be a left-inverse of $x$, and let $r \in E$ be a right-inverse of $x$. Then we have:
+				$$l = l \star e_\star = l \star (x \star r) = (l \star x) \star r = e_\star \star r = r$$
+\end{proof}
+
+\begin{corollary}[Distinct left-inverses implies no right-inverse, and vice versa]
+		Let $(E, \star)$ be a monoid, and let $x \in E$. If $x$ has two distinct left-inverses, then it has no right-inverse, and similarly, if $x$ has two distinct right-inverses, then it has no left-inverse.
+\end{corollary}
+
+\begin{proof}
+		The contrapositive is that, if $x$ has a right-inverse, then all its left-inverse are equal, and similarly, if $x$ has a left-inverse, then all its right-inverses are equal. As such, this is a direct consequence of the previous theorem.
+\end{proof}
+
+\begin{corollary}[Elements of monoids have at most one inverse] \label{thm:inv-unique}
+		Let $(E, \star)$ be a monoid, and let $x \in E$. Then, $x$ has at most one inverse.
+\end{corollary}
+
+\begin{proof}
+		Let $y$ and $y'$ be inverses of $x$. As $y$ is a left-inverse and that $y'$ is a right-inverse, and therefore $y = y'$.
+\end{proof}
+
+\begin{remark}
+		From this corollary, we have that, if $x$ has an inverse, this inverse is unique. We will therefore note $x^-1$ for the inverse of $x$ if it has one.
+\end{remark}
+
+\begin{theorem}[Inverse of inverse of $x$ is $x$ in monoids] \label{thm:inv-inv}
+		Let $(E, \star)$ be a monoid. Let $x \in E$ be invertible. Then $x^{-1}$ is invertible and its inverse is $(x^{-1})^{-1} = x$.
+\end{theorem}
+
+\begin{proof}
+		Let $x \in E$ such that $x^{-1}$ exists. Let's prove that $x$ is the inverse of $x^{-1}$. For this, we need to prove that $x$ is the left-inverse and right-inverse of $x^{-1}$:
+				$$x \star x^{-1} = e_\star$$
+				$$x^{-1} \star x = e_\star$$
+\end{proof}
+
+\begin{theorem}[Inverse of $x \star y$ is $y^{-1} \star x^{-1}$] \label{thm:inv-distrib}
+		Let $(E, \star)$ be a monoid. Let $x, y \in E$ be invertible. Then, $x \star y$ is invertible and its inverse is $(x \star y)^{-1} = y^{-1} \star x^{-1}$.
+\end{theorem}
+
+\begin{proof}
+		Let $x, y \in E$ be invertible. We need to prove that $y^{-1} \star x^{-1}$ is the inverse of $x \star y$:
+				$$(y^{-1} \star x^{-1}) \star (x \star y) = y^{-1} \star (x \star x^{-1}) \star y = y^{-1} \star e_\star \star y = y^{-1} \star y = e_\star$$
+				$$(x \star y) \star (y^{-1} \star x^{-1}) = x \star (y \star y^{-1}) \star x^{-1} = x \star e_\star \star x^{-1} = x \star x^{-1} = e_\star$$
+\end{proof}
+
+In monoids, elements do not necessarily have an inverse. This is why we introduce the notion of groups, where each element has an inverse, just as for additions over $\mathbb{Z}$. As we said earlier, this will enable to simulate an inverse operation of $\star$, just like substraction is an inverse operation of addition over $\mathbb{Z}$. Intuitively, a group is an algebraic structure where we can do addition and substraction. Note that these additions and substractions do not need to be operations over numbers. The beauty of algebraic structures is their generality. For instance, when we will see matrices, we will prove that matrices of the same dimensions form an "abelian group". As such, every result about groups will also be true for matrices of the same dimensions. 
+
+\begin{definition}[Group]
+		$(E, \star)$ is a group iff:
+		\begin{itemize}
+				\item  $(E, \star)$ is a monoid
+				\item Every element in $E$ has an inverse according to $\star$: $\forall x \in E, \exists y \in E, x \star y = y \star x = e_\star$
+		\end{itemize}
+		As we have previously seen that the only $y \in E$ which can respect $x \star y = y \star x = e_\star$ is $x^{-1}$, the second hypothesis can be rewritten as:
+		\begin{itemize}
+				\item $E$ is stable over inverse: $\forall x \in E, x^{-1} \in E$
+		\end{itemize}
+\end{definition}
+
+\begin{definition}[Abelian group]
+		A group $(E, \star)$ is abelian when $\star$ is commutative:
+				$$\forall x, y \in E, x \star y = y \star x$$
+\end{definition}
+
+\begin{definition}[Subgroup]
+		$(G, \star)$ be an algebraic structure (usually a group or monoid), and let $(H, \star)$ be a group. $(H, \star)$ is called a subgroup of $(G, \star)$ when $H \subseteq G$. Furthermore, $(H, \star)$ is called a proper subgroup of $(G, \star)$ when $H \subsetneq G$.
+\end{definition}
+
+\begin{theorem}[Subgroup test]
+		Let $(G, \star)$ be a monoid, and let $H \subseteq G$. Then, $(H, \star)$ is a subgroup of $(G, \star)$ if and only if:
+		\begin{itemize}
+				\item $H \neq \varnothing$
+				\item $H$ is stable over $\star$: $\forall x, y \in H, x \star y \in H$
+				\item $H$ is stable over inverse: $\forall x \in H, x^{-1} \in H$
+		\end{itemize}
+\end{theorem}
+
+\begin{proof}
+		Let's prove the implication first. Let $(H, \star)$ be a subgroup of $(G, \star)$. Let's prove that:
+		\begin{itemize}
+				\item $H \neq \varnothing$: As $(H, \star)$ is a subgroup, it is also a group, and therefore a monoid. As the third hypothesis of monoids is that $H$ has an identity element, then $H$ cannot be empty.
+				\item $H$ is stable over $\star$: As $(H, \star)$ is a group, it is also a magma, and the second hypothesis of magmas is that $H$ is stable over $\star$.
+				\item $H$ is stable over inverse: This is just the second hypothesis of groups.
+		\end{itemize}
+		
+		Now, let's prove the reciprocal. Suppose that $H \neq \varnothing$ and that $H$ is stable over $\star$ and over inverse. We want to prove that $(H, \star)$ is a subgroup of $(G, \star)$. For this we just need to prove that $(H, \star)$ is a group, that is:
+		\begin{outline}
+				\1 $(H, \star)$ is a monoid
+						\2 $(H, \star)$ is a magma
+								\3 $H$ is a set (Trivial)
+								\3 $H$ is stable over $\star$: This is one of our hypotheses
+						\2 $\star$ is associative for $H$: As $(G, \star)$ is a monoid, then $(x \star y) \star z = x \star (y \star z)$ holds for all elements $x, y, z$ of $G$, and therefore also holds for all elements of $H \subseteq G$
+						\2 $H$ has an identity element for $\star$: As $H \neq \varnothing$, then there exists $x \in H$. Furthermore, as $H$ is stable over inverse, then $x^{-1} \in H$. Finally, as $H$ is stable over $\star$, we have that $e_\star = x \star x^{-1} \in H$.
+				\1 $H$ is stable over inverse: This is one of our hypotheses
+		\end{outline}
+\end{proof}
+
+\begin{theorem}[Invertible elements of a monoid form a group] \label{thm:inv-form-group}
+		Let $(E, \star)$ be a monoid. Then $(E^\times, \star)$ is a subgroup of $(E, \star)$. 
+\end{theorem}
+
+\begin{proof}
+		We already have that $E^\times \subseteq E$. From the previous theorem, we just need to prove that:
+		\begin{outline}
+				\1 $E^\times \neq \varnothing$: The identity element $e_\star$ is trivially invertible as we have $e_\star \star e_\star = e_\star$, and therefore $e_\star \in E^\times$
+				\1 $E^\times$ is stable over $\star$: Let $x, y \in E^\times$ be invertible elements. From theorem (\ref{thm:inv-distrib}), $x \star y$ is invertible (of inverse $y^{-1} \star x^{-1}$), and therefore $(x \star y) \in E^\times$
+				\1 $E^\times$ is stable over inverse: Let $x$ be an invertible element. From theorem (\ref{thm:inv-inv}), $x^{-1}$ is invertible (of inverse $x$), and therefore $x^{-1} \in E^\times$.
+		\end{outline}
+\end{proof}
+
+Most of the times, when doing operations like additions, we would want to repeat this operation many times. In the case of additions, we would like to introduce the multiplication operator, and have that $7 \times 4 = 7 + 7 + 7 + 7$. However, this assumes that elements in $E$ are elements with which we can count, which is not necessarily true in groups. For instance, what would $f \times g$ be? Could it be $f + f + \dots + f$ repeated $g$ times? This doesn't make sense, as $g$ is a function and not a number. This is why we introduce the notion of rings, and add the condition of distributivity. Intuitively, rings are an algebraic structure where we can do addition, substraction, and multiplication. And in fact, in rings, we start using the symbols generally used for addition and multiplication to denote the binary operators. But note that, like for monoids, they do not represent only operations over numbers. For instance, we will later see that the set of square matrices of the same size form a ring. As such, every property we will prove about rings will also be true for square matrices of the same size.
+
+%https://en.wikipedia.org/wiki/Ring_(mathematics)
+\begin{definition}[Ring] %Anneau (unitaire) : unitaire = multiplication a un élément neutre
+		$(E, +, \times)$ is a ring iff:
+		\begin{itemize}
+				\item $(E, +)$ is an abelian group
+				\item $(E, \times)$ is a monoid
+				\item $\times$ is distributive over $+$:
+						$$\forall a, b, c \in E, a \times (b + c) = a \times b + a \times c$$
+						$$\forall a, b, c \in E, (a + b) \times c = a \times c + b \times c$$
+		\end{itemize}
+		Furthermore, it is a commutative ring when adding the condition that $\times$ is commutative. We often write $0$ for $e_+$ and $1$ for $e_\times$. Note that $0$ and $1$ may be the same element.
+\end{definition}
+
+With rings, we can do additions, substractions, and multiplications. However, we still cannot do divisions like $7 / 4$. Like for groups, instead of adding a binary operator for division, we will add multiplicative inverses, so that we can compute $7 / 4$ by computing $7 \times 4^{-1}$ instead. However, we allow ourselve to not have an inverse for 0.
+
+
+%https://fr.wikipedia.org/wiki/Anneau_unitaire
+\begin{definition}[Field] % Corps
+		$(E, +, \times)$ is a field iff:
+		\begin{itemize}
+				\item $(E, +, \times)$ is a commutative ring
+				\item $(E\setminus\{0\}, \times)$ is a group. The only two conditions that it adds are that:
+				\begin{itemize}
+						\item Every element in $E$ other than $0$ has a multiplicative inverse: $\forall x \in E, x \neq 0 \implies \exists y, x \times y = y \times x = 1$
+						\item $0$ is different than $1$. Indeed as $(E\setminus\{0\}, \times)$ is a group, it must contain the identity of $\times$, that is, it must contain $1$. However, it doesn't contain $0$, and therefore $0 \neq 1$.
+				\end{itemize}
+		\end{itemize}
+\end{definition}
+
+\begin{theorem}
+		0 has no left/right/two-sided inverse.
+\end{theorem}
+
+\begin{proof}
+		If 0 has a left-inverse $l$, then $0 = l \times 0 = 1$, but as $0 \neq 1$, this is impossible. Similarly, if 0 has a right inverse $r$, then $0 = 0 \times r = 1$.
+\end{proof}
+
+\begin{remark}
+		Sometimes, we may want to do operations between elements of different types, like scalars and vectors. For instance, we would want to do $3 \times v + w$, where $v$ and $w$ are vectors. However, we wouldn't want to allow operations like $v \times w$. This is why we introduce vector spaces. These vector spaces add a new addition (between vectors) and multiplication (between scalars and vectors), but prevent multiplication between two vectors.
+\end{remark}
+
+\begin{definition}[Vector space]
+		$(V, +_V, \times_V)$ is a $\mathbb{K}$-vector space iff:
+		\begin{itemize}
+				\item $(\mathbb{K}, +_\mathbb{K}, \times_\mathbb{K})$ is a field
+				\item $(V, +_V)$ is a commutative group
+				\item $\times_V$ is a binary function: $\forall k \in \mathbb{K}, \forall v \in V, k \times_V v \in V$
+				\item $\times_\mathbb{K}$ and $\times_V$ are compatible: $\forall k, l \in \mathbb{K}, \forall v \in V, k \times_V (l \times_V v) = (k \times_\mathbb{K} l) \times_V v$
+				\item $1_\mathbb{K}$ is an identity element for $\times_V$: $1_\mathbb{K} \times_V v = v$
+				\item Distributivity of $\times_V$ with respect to $+_V$: $\forall k \in \mathbb{K}, \forall u, v \in V, k \times_V (u +_V v) = k \times_V u +_V k \times_V v$
+				\item Distributivity of $\times_V$ with respect to $+_\mathbb{K}$: $\forall k, l \in \mathbb{K}, \forall v \in V, (k +_\mathbb{K} l) \times_V = k \times_V v +_V l \times_V v$
+		\end{itemize}
+\end{definition}
+
+\begin{definition}[Inner product space]
+		$(V, +, \times, \langle \cdot, \cdot, \rangle)$ is an inner product space iff:
+		\begin{itemize}
+				\item $(V, +, \times)$ is a $\mathbb{K}$-vector space, with $\mathbb{K} \in \{\mathbb{R}, \mathbb{C}\}$
+				\item $\langle \cdot, \cdot \rangle$ is a binary function: $\forall u, v \in V, \langle u, v \rangle \in \mathbb{K}$
+				\item Conjugate symmetry: $\forall u, v \in V, \langle u, v \rangle = \overline{\langle v, u \rangle}$
+				\item Linearity: $\forall u, v, w \in V, \forall k, l \in \mathbb{K}, \langle ku + lv, w \rangle = k\langle u, w \rangle + l\langle v, w \rangle$
+				\item Positive-definiteness: $\forall v \in V\setminus\{0\}, \langle x, x \rangle > 0$
+		\end{itemize}
+\end{definition}
+
+\section{Linear algebra}
+
+%\begin{definition}
+%		Let $\mathbb{K}$ be a field, and let $V$ and $W$ be $\mathbb{K}$-vector spaces. A function $f : V \rightarrow W$ is a linear transformation if we have:
+%		\begin{itemize}
+%				\item Additivity: $\forall u, v \in V, f(u + v) = f(u) + f(v)$
+%				\item Homogeneity of degree 1: $\forall u \in V, \forall k \in K, f(ku) = kf(u)$
+%		\end{itemize}
+%\end{definition}
+
+%\begin{remark}
+%		When applying a linear transformation, like an axial symmetry, some vectors may not change direction. We call them eigenvectors.
+%\end{remark}
+
+%\begin{definition}
+%		Let $\mathbb{K}$ be a field, let $V$ and $W$ be $\mathbb{K}$-vector spaces, and let $f : V \rightarrow W$ be a linear transformation. We say that $v \in V$ is an \textit{eigenvector} of $V$ if there exists $k \in K$ such that:
+%				$$f(v) = k v$$
+%		In that case, we call $k$ the \textit{eigenvalue} of $v$.
+%\end{definition}
+
+
+\begin{definition}[Matrix]
+    Let $(\mathbb{K}, +, \times)$ be a field. A $m \times n$ matrix is a table with $m$ rows and $n$ columns, whose entries are all elements of $\mathbb{K}$. We use $a_{ij}$ to refer to the entry of $A$ at the $i$-th line and $j$-th column, and we write:
+        $$A = \fmatrix{a}{m}{n}$$
+    We note $M_{m,n}(\mathbb{K})$ for the set of all $m \times n$ matrices over the field $\mathbb{K}$
+\end{definition}
+
+\begin{definition}[Zero matrix]
+		Let $(\mathbb{K}, +, \times)$ be a field. For all $n \in \mathbb{N}^*$, we define the zero matrix $0_{m,n}$ (or simply 0) as the $m \times n$ matrix whose etries are all $0_\mathbb{K}$. Here, $0_\mathbb{K}$ is the zero of the field $\mathbb{K}$.
+\end{definition}
+
+\begin{definition}[Square matrix]
+    A matrix is said to be a \textit{square matrix} when it has the same number of rows and columns. We note $M_n(\mathbb{K})$ for the set of all $n \times n$ square matrices over the field $\mathbb{K}$.
+\end{definition}
+
+\begin{definition}[Diagonal]
+    Let $A \in M_n(\mathbb{K})$ be a $n \times n$ square matrix. The diagonal of $A$ refers to the list of entries $a_{ij}$ where $i=j$. For instance, here we emphasize in bold the diagonal of a matrix in $M_4(\mathbb{R})$:
+        $$\begin{bmatrix} \mathbf{2} & 3 & 5 & 7 \\ 1 & \mathbf{2} & 3 & 4 \\ 2 & 4 & \mathbf{6} & 8 \\ 7 & 4 & 2 & \mathbf{8}\end{bmatrix}$$
+\end{definition}
+
+\begin{definition}[Identity matrix]
+		Let $(\mathbb{K}, +, \times)$ be a field. For all $n \in \mathbb{N}^*$, we define the identity matrix $I_n$ (or simply $I$) as the $n \times n$ square matrix whose entries are all $0_\mathbb{K}$, except for the diagonal, whose entries are all $1_\mathbb{K}$:
+				$$I_3 = \begin{bmatrix} 1 & 0 & 0 \\ 0 & 1 & 0 \\ 0 & 0 & 1 \end{bmatrix}$$
+		Equivalently, let the Kronecker delta function:
+				$$\delta(i, j) = \begin{cases} 1 & \text{ if } $i=j$ \\ 0 & \text{ otherwise} \end{cases}$$
+		We can define the identity matrix as the matrix for which the entry at position $(i, j)$ is $\delta(i, j)$.
+\end{definition}
+
+\begin{definition}[Matrix addition]
+    The addition between two matrices is the element wise addition. That is, let $A, B \in M_{m, n}(\mathbb{K})$ be $m \times n$ matrices over the field $\mathbb{K}$. The matrix $C = A + B$ is a $m \times n$ matrix such that:
+        $$c_{ij} = a_{ij} + b_{ij}$$
+\end{definition}
+
+\begin{definition}[Matrix multiplication]
+		Let $A \in M_{m,n}(\mathbb{K})$ and $B \in M_{n,k}(\mathbb{K})$ be respectively a $m \times n$ and $n \times p$ matrices over the field $\mathbb{K}$. The matrix $C = A \cdot B$ (also written $C = AB$) is a $m \times p$ matrix such that:
+        $$c_{ij} = \sum_{k=1}^n a_{ik} b_{kj}$$
+    Matrix multiplication isn't defined when the number of columns of $A$ is not the number of rows of $B$.
+\end{definition}
+
+\begin{theorem}[Matrices of same dimensions form an additive monoid]
+		$(M_{m,n}(\mathbb{K}), +)$ is a monoid whose identity element is the zero matrix $0_{m,n}$.
+\end{theorem}
+
+\begin{proof}
+		To prove that $(M_{m,n}(\mathbb{K}), +)$ is a monoid, we need to prove that:
+		\begin{outline}
+						
+				\1 $(M_{m,n}(\mathbb{K}), +)$ is a magma
+						\2 $M_{m,n}(\mathbb{K})$ is a set (Trivial)
+						\2 $M_{m,n}(\mathbb{K})$ is stable over $+$: Let $A, B \in M_{m,n}(\mathbb{K})$ be $m \times n$ matrices whose entries are in the field $\mathbb{K}$. Firstly, $A + B$ is indeed a $m \times n$ matrix, and secondly, its values are in $\mathbb{K}$. Therefore, $C \in M_{m,n}(\mathbb{K})$.
+				\1 + is associative: Let $A, B, C \in M_{m,n}(\mathbb{K})$ be $m \times n$ be matrices. We have:
+				\begin{align*}
+						(A + B) + C &= (\fmatrix{a}{m}{n} + \fmatrix{b}{m}{n}) + \fmatrix{c}{m}{n}\\
+									&= \ffmatrix{(a_{#1#2} + b_{#1#2}) + c_{#1#2}}{m}{n}\\
+									&= \ffmatrix{a_{#1#2} + (b_{#1#2} + c_{#1#2})}{m}{n}\\
+									&= \fmatrix{a}{m}{n} + (\fmatrix{b}{m}{n} + \fmatrix{c}{m}{n})\\
+									&= A + (B + C)
+				\end{align*}
+				Remark that this notation is very big. Although we will use it at first in order to understand how to do matrix additions and multiplications, we will later use the following notation which focuses on the entry at position $(i, j)$ instead of all the matrix:
+						$$((A + B) + C)_{ij} = (a_{ij} + b_{ij}) + c_{ij} = (a_{ij} + b_{ij}) + c_{ij} = ((A + B) + C)_{ij}$$
+				This notation is valid because, if we prove that two matrices are element wise equal, then they are equal.
+				\2 $M_{m,n}(\mathbb{K})$ has an identity element for $+$: Let $A \in M_{m,n}(\mathbb{K})$ be a $m \times n$ matrix whose entries are in the field $\mathbb{K}$. Then we have:
+				\begin{align*}
+						A + 0_{m,n} &= \fmatrix{a}{m}{n} + \zeromatrix\\
+									&= \ffmatrix{a_{#1#2} + 0}{m}{n}\\
+									&= \fmatrix{a}{m}{n}\\
+									&= A
+				\end{align*}
+				\begin{align*}
+						0_{m,n} + A &= \zeromatrix + \fmatrix{a}{m}{n}\\
+									&= \ffmatrix{0 + a_{#1#2}}{m}{n}\\
+									&= \fmatrix{a}{m}{n}\\
+									&= A
+				\end{align*}
+				Or using the more compact notation:
+						$$(A + 0_{m,n})_{ij} = a_{ij} + 0 = a_{ij}$$
+						$$(0_{m,n} + A)_{ij} = 0 + a_{ij} = a_{ij}$$
+		\end{outline}
+\end{proof}
+
+\begin{theorem}[Additive inverse is element wise additive inverse] \label{thm:matrix-add-inv}
+		Let $A \in M_{m,n}(\mathbb{K})$ be a $m \times n$ matrix. $A$ has a single additive inverse $-A$ which is the matrix $B \in M_{m,n}(\mathbb{K})$ such that $b_{ij} = -a_{ij}$.
+\end{theorem}
+
+\begin{proof}
+		As $(M_{m,n}(\mathbb{K}), +)$ is a monoid, the uniqueness condition is verified. Now, we just need to prove that $B$ is the inverse of $A$:
+				$$(A + B)_{ij} = a_{ij} + b_{ij} = a_{ij} - a_{ij} = 0$$
+				$$(B + A)_{ij} = b_{ij} + a_{ij} = -a_{ij} + a_{ij} = 0$$
+		Which concludes the proof
+\end{proof}
+
+\begin{theorem}[Matrices of same dimensions form an additive abelian group]
+		$(M_{m,n}(\mathbb{K}), +)$ is an abelian group.
+\end{theorem}
+
+\begin{proof}
+		To prove that $(M_{m,n}(\mathbb{K}), +)$ is a group, we need to prove that:
+		\begin{outline}
+				\1 $(M_{m,n}(\mathbb{K}), +)$ is a monoid (Already done)
+				\1 $M_{m,n}(\mathbb{K})$ is stable over additive inverse (Already done in theorem (\ref{thm:matrix-add-inv}))
+		\end{outline}
+		Now, to prove that this group is abelian, we prove that + is commutative. Let $A, B \in M_{m,n}(\mathbb{K})$. Then we have:
+				$$(A + B)_{ij} = a_{ij} + b_{ij} = b_{ij} + a_{ij} = (A + B)_{ij}$$
+\end{proof}
+
+\begin{theorem}[Matrix multiplication is associative]
+    Let $A \in M_{m,n}(\mathbb{K})$ be a $m \times n$ matrix, $B \in M_{n,p}(\mathbb{K})$ be a $n \times p$ matrix, and $C \in M_{p,q}(\mathbb{K})$ be a $p \times q$ matrix. Then we have:
+        $$(A \cdot B) \cdot C = A \cdot (B \cdot C)$$
+\end{theorem}
+
+\begin{proof}
+		\begin{align*}
+				((A \cdot B) \cdot C)_{ij} &= \sum_{k=1}^p (A \cdot B)_{ik} c_{kj} \text{ (The sum goes up to $p$ because $A \cdot B$ has $p$ columns and $C$ has $p$ rows)}\\
+										   &= \sum_{k=1}^p (\sum_{k'=1}^n a_{ik'} b_{k'k}) c_{kj} \text{ (The sum goes up to $n$ because $A$ has $n$ columns and $B$ has $n$ rows)}\\
+										   &= \sum_{k=1}^p \sum_{k'=1}^n a_{ik'} b_{k'k} c_{kj} \text{ (We distribute $c_{kj}$)}\\
+										   &= \sum_{k'=1}^n \sum_{k=1}^p a_{ik'} b_{k'k} c_{kj} \text{ (We permute the $\sum$)}\\
+										   &= \sum_{k'=1}^n a_{ik'} \sum_{k=1}^p b_{k'k} c_{kj} \text{ (We factorize by $a_{ik'}$)}\\
+										   &= \sum_{k'=1}^n a_{ik'} (B \cdot C)_{k'j}\\
+										   &= (A \cdot (B \cdot C))_{ij}
+		\end{align*}
+%		When considering the whole matrix, the proof is:
+%		\begin{align*}
+%				&(A \cdot B) \cdot C = (\fmatrix{a}{m}{n} \fmatrix{b}{n}{p}) \fmatrix{c}{p}{q}\\
+%				&= \ffmatrix{\sum_{k'=1}^n a_{#1 k'} b_{k' #2}}{m}{p} \fmatrix{c}{p}{q}\\
+%				&= \ffmatrix{\sum_{k=1}^p (\sum_{k'=1}^n a_{#1 k'} b_{k' k}) c_{k #2}}{m}{q}\\
+%				&= \ffmatrix{\sum_{k=1}^p (\sum_{k'=1}^n a_{#1 k'} b_{k' k} c_{k #2})}{m}{q}\\
+%				&= \ffmatrix{\sum_{k'=1}^n (\sum_{k=1}^p a_{#1 k'} b_{k' k} c_{k #2})}{m}{q}\\
+%				&= \ffmatrix{\sum_{k'=1}^n a_{#1 k'} (\sum_{k=1}^p b_{k' k} c_{k #2})}{m}{q}\\
+%				&= \fmatrix{a}{m}{n} \ffmatrix{\sum_{k=1}^p b_{#1 k} c_{k #2}}{n}{q}\\
+%				&= \fmatrix{a}{m}{n} (\fmatrix{b}{n}{p} \fmatrix{c}{p}{q})\\
+%				&= A \cdot (B \cdot C)
+%		\end{align*}
+\end{proof}
+
+\begin{theorem}[Matrix multiplication with the identity matrix does nothing] \label{thm:mult-nothing}
+    Let $A$ be a $m \times n$ matrix. Then we have:
+        $I_m A = A = A I_n$
+\end{theorem}
+
+\begin{proof}
+    Firstly, note that the multiplications $I_m A$ and $A I_n$ are defined. Then, we have:
+	\begin{align*}
+			(I_m \cdot A)_{ij} &= \sum_{k=1}^m I_{ik} a_{kj} \text{ (the sum goes up to $m$ because $I_m$ has $m$ columns and $A$ has $m$ rows)}\\
+							   &= \sum_{k=1}^m \delta(i, k) a_{kj}\\
+							   &= \delta(i, 1) a_{1j} + \dots + \delta(i, i-1) a_{(i-1)j} + \delta(i, i) a_{ij} + \delta(i, i+1) a_{(i+1)j} + \dots + \delta(i, m) a_{mj}\\
+							   &= 0 a_{1j} + \dots + 0 a_{(i-1)j} + 1 a_{ij} + 0 a_{(i+1)j} + \dots + 0 a_{mj}\\
+							   &= a_{ij}
+	\end{align*}
+	And similarly, we have:
+			$$(A \cdot I_n)_{ij} = \sum_{k=1}^n a_{ik} I_{kj} = \sum_{k=1}^n a_{ik} \delta(k, j) = a_{ij}$$
+\end{proof}
+
+\begin{theorem}[Square matrices form a multiplicative monoid]
+    $(M_n(\mathbb{K}), \cdot)$ forms a monoid whose identity element is $I_n$.
+\end{theorem}
+
+\begin{proof}
+    To prove that $(M_n(\mathbb{K}), \cdot)$ is a group, we do:
+    \begin{outline}
+        \1 $(M_n(\mathbb{K}), \cdot)$ is a magma
+            \2 $M_n(\mathbb{K})$ is a set
+            \2 $M_n(\mathbb{K})$ is stable over $\cdot$: Let $A, B \in M_n(\mathbb{K})$ be $n \times n$ matrices whose entries are in $\mathbb{K}$. We indeed have that $A \cdot B$ is a $n \times n$ matrix over the field $\mathbb{K}$, and therefore $(A \cdot B) \in M_n(\mathbb{K})$
+        \1 $\cdot$ is associative: We have previously proved it more generally. 
+        \1 $\cdot$ has an identity element: Let $A \in M_n(\mathbb{K})$ be a $n \times n$ square matrix. From theorem (\ref{thm:mult-nothing}), we have that $I_n \cdot A = A = A \cdot I_n$, and therefore $I_n$ is an identity element.
+    \end{outline}
+\end{proof}
+
+\begin{definition}[Invertible matrices]
+    Let $A \in M_n(\mathbb{K})$ be a $n \times n$ square matrix. $A$ is said to be invertible when it is invertible in $M_n(\mathbb{K})$, that is, when there exists a $n \times n$ square matrix $B \in M_n(\mathbb{K})$ such that:
+        $$AB = BA = I$$
+    We call $GL_n(\mathbb{K})$ the set of invertible $n \times n$ matrices over the field $\mathbb{K}$
+\end{definition}
+
+
+\begin{corollary}[Matrix inverses are unique if they exist]
+		Let $A \in M_n(\mathbb{K})$ be a square matrix. $A$ has at most one inverse.
+\end{corollary}
+
+\begin{proof}
+		As $(M_n(\mathbb{K}), \cdot)$ is a monoid, this theorem is a direct consequence of $(\cite{thm:inv-unique})$
+\end{proof}
+
+\begin{corollary}[Invertible matrices form a multiplicative group]
+		Let $GL_n(\mathbb{K}) = (M_n(\mathbb{K}))^\times$ be the set of invertible $n \times n$ matrices whose entries are in $\mathbb{K}$. Then, $(GL_n(\mathbb{K}), \cdot)$ is a subgroup of $(M_n(\mathbb{K}), \cdot)$.
+\end{corollary}
+
+\begin{proof}
+		As $(M_n(\mathbb{K}), \cdot)$ is a monoid, this is a direct consequence of $\ref{thm:inv-form-group}$.
+\end{proof}
+
+\begin{theorem}[Matrix multiplication is distributive over matrix addition]
+    Let $A \in M_{m,n}(\mathbb{K})$ be a $m \times n$ matrix, and $B, C \in M_{n,p}(\mathbb{K})$ be $n \times p$ matrices. Then we have:
+        $$A(B + C) = AB + AC$$
+    If instead we have that $B$ and $C$ are $m \times n$ matrices and that $A$ is a $n \times p$ matrix, then we have:
+        $$(B + C)A = BA + CA$$
+\end{theorem}
+
+\begin{proof}
+		For $A \in M_{m,n}(\mathbb{K})$ and $B, C \in M_{n,p}(\mathbb{K})$, we have:
+		\begin{align*}
+				(A \cdot (B + C))_{ij} &= \sum_{k=1}^n a_{ik} (B + C)_{kj}\\
+									   &= \sum_{k=1}^n a_{ik} (b_{kj} + c_{kj})\\
+									   &= \sum_{k=1}^n (a_{ik} b_{kj} + a_{ik} c_{kj})\\
+									   &= (\sum_{k=1}^n a_{ik} b_{kj}) + (\sum_{k=1}^n a_{ik} c_{kj})\\
+									   &= (A \cdot B)_{ij} + (A \cdot C)_{ij}\\
+									   &= ((A \cdot B) + (A \cdot C))_{ij}
+		\end{align*}
+		Similarly, for $B, C \in M_{m,n}(\mathbb{K})$ and $A \in M_{n,p}(\mathbb{K})$, we have:
+		\begin{align*}
+				((B + C) \cdot A)_{ij} &= \sum_{k=1}^n (B + C)_{ik} a_{kj}\\
+									   &= \sum_{k=1}^n (b_{ik} + c_{ik}) a_{kj}\\
+									   &= \sum_{k=1}^n (b_{ik} a_{kj} + c_{ik} a_{kj})\\
+									   &= (\sum_{k=1}^n b_{ik} a_{kj}) + (\sum_{k=1}^n c_{ik} a_{kj})\\
+									   &= (B \cdot A)_{ij} + (C \cdot A)_{ij}\\
+									   &= ((B \cdot A) + (C \cdot A))_{ij}\\
+		\end{align*}
+\end{proof}
+
+\begin{theorem}[Square matrices form a ring]
+    $(M_n(\mathbb{K}), +, \cdot)$ forms a ring.
+\end{theorem}
+
+\begin{proof}
+    We need to prove that:
+    \begin{itemize}
+        \item $(M_n(\mathbb{K}), +)$ is an abelian group: We have previously proved it more generally
+        \item $(M_n(\mathbb{K}), \cdot)$ is a monoid: We have previously proved it
+        \item $\cdot$ is distributive over $+$ : We have previously proved it more generally
+    \end{itemize}
+\end{proof}
+
+\end{document}
+
