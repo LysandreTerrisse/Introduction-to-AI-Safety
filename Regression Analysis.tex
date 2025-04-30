@@ -363,32 +363,26 @@ However, when $X^\top X$ isn't invertible, then %TODO
     We say that a function interpolates a set of points when this function passes through all these points.
 \end{definition}
 
-\begin{remark}
-    The sum of two polynomials of degrees $d_1$ and $d_2$ is a polynomial of degree $d_3 \leq \max \{d_1, d_2\}$.
-\end{remark}
-
-\begin{theorem}
-    Given $n$ points $(x_1, y_1), \dots, (x_n, y_n)$ of distinct $x_i$, there is a unique polynomial of degree at most $n$ which interpolates them.
+\begin{theorem}[Polynomial interpolation]
+    Given $n$ points $(x_1, y_1), \dots, (x_n, y_n)$ of distinct $x_i$, there is a unique polynomial of degree at most $n-1$ which interpolates them.
 \end{theorem}
 
 \begin{proof}
-    For all $i \in \{1, n\}$, let's define the following polynomial:
+    Let's firstly prove the existence, and then the uniqueness. For all $i \in \{1, \dots, n\}$, let's define the following polynomial:
         $$\ell_i(x) = \prod_{j \in \{1, \dots, n\} \setminus \{i\}} \frac{x - x_j}{x_i - x_j}$$
-    The set of these polynomials is called the \textit{Lagrange basis} of our $n$ points. Firstly, notice that $\ell_i(x_i) = 1$ since:
-        $$\ell_i(x_i) = \prod_{j \in \{1, \dots, n\} \setminus \{i\}} \frac{x_i - x_j}{x_i - x_j} = \prod_{j \in \{1, \dots, n\} \setminus \{i\}} 1 = 1$$
-    Then, notice that for all $k \neq j$, $\ell_i(x_k) = 0$ since:
+    The set of these polynomials is called the \textit{Lagrange basis} of our $n$ points, because they will enable us to build a polynomial interpolating all our points. These polynomials have three interesting properties:
+    \begin{itemize}
+        \item Firstly, $\ell_i(x_i) = 1$ since:
+            $$\ell_i(x_i) = \prod_{j \in \{1, \dots, n\} \setminus \{i\}} \frac{x_i - x_j}{x_i - x_j} = \prod_{j \in \{1, \dots, n\} \setminus \{i\}} 1 = 1$$
+        \item Secondly, for all $k \neq i$, $\ell_i(x_k) = 0$ since:
         $$\ell_i(x_k) = \prod_{j \in \{1, \dots, n\} \setminus \{i\}} \frac{x_k - x_j}{x_i - x_j} = \left(\frac{x_k - x_k}{x_i - x_k}\right)\left(\prod_{j \in \{1, \dots, n\} \setminus \{i, k\}} \frac{x_k - x_j}{x_i - x_j}\right)$$
-    Finally, note that the numerator of $\ell_i(x)$ is a polynom of $n-1$ roots, and that the denominator is just a constant. As such, $\ell_i(x)$ has $n-1$ roots, and therefore is a polynom of degree $n-1$.
+        and that the left operand is equal to zero.
+        \item Thirdly, the numerator of $\ell_i(x)$ is a polynom of $n-1$ roots, and the denominator is just a constant (as it doesn't depend on $x$). As such, $\ell_i(x)$ has $n-1$ roots, and therefore is a polynom of degree $n-1$.
+    \end{itemize}
+    Now, let's consider the polynomials $\ell_i(x)y_i$ for all $i \in \{1, \dots, n\}$. They are still polynoms of degree at most $n-1$, and they still equal to 0 when given $x_k$ with $k \neq i$. But this time, instead of being equal to 1 when given $x_i$, they are equal to $y_i$. Finally, let's consider the sum of these polynoms, that is $L(x) = \sum_{i=1}^n \ell_i(x)y_i$, called the \textit{Lagrange polynomial} of our points. For each $x_i \in \{x_1, \dots, x_n\}$, the polynomial $\ell_i(x_i)y_i$ would be equal to $y_i$ and all the others would be equal to 0. Therefore, the sum $L(x_i)$ would be equal to $y_i$, which means that the polynom indeed interpolates all our points. Furthermore, as it is a sum of polynoms of degree at most $n-1$, the polynom is of degree at most $n-1$.
 
-    Now, let's consider $\ell_i(x)y_i$. This is still a polynom of degree at most $n-1$, which is still equal to 0 when given $x_k$ with $k \neq i$. But this time, instead of being equal to 1 when given $x_i$, it is equal to $y_i$.
+    Now that we have finished to prove the existence, let's now prove the uniqueness of such polynom. That is, we want to prove that the Lagrange polynomial is the only polynomial of degree at most $n-1$ which interpolates our points. Let's consider any polynomial $P(x)$ of degree at most $n-1$ which interpolates our data. Then, $P(x) - L(x)$ is a polynomial of degree at most $n-1$. Furthermore, for all $x_i \in \{x_1, \dots, x_n\}$, since $P(x_i) = y_i = L(x_i)$, then $P(x_i) - L(x_i) = 0$, and therefore $\{x_1, \dots, x_n\}$ are $n$ distinct roots of $P(x) - L(x)$. But, if a polynomial of degree at most $n-1$ has $n$ distinct roots, it must then be the zero polynomial. As such, for all $x \in \mathbb{R}$, $L(x) - P(x) = 0$, and therefore these two polynomials are equal, proving the uniqueness.
 
-    And finally, let's consider $L(x) = \sum_{i=1}^n \ell_i(x)y_i$, called the \textit{Lagrange polynomial} of our points. For each $i \in \{1, \dots, n\}$, the polynomial $\ell_i(x)y_i$ would be equal to $y_i$ and all the others would be equal to 0. Therefore, the sum $L(x_i)$ would be equal to $y_i$, which means that this polynom interpolates all our points. Furthermore, as it is a sum of polynoms of degree at most $n$, the polynom is of degree at most $n$.
-
-    Now, we want to prove that the Lagrange polynomial is the only polynomial of degree at most $n$ which interpolates our points.
-
-, since $\ell_i$ has a term $x - x_j$ which would become $x_j - x_j = 0$, and which will be multiplied by the rest of the polynom.
-
-    
 \end{proof}
 
 
