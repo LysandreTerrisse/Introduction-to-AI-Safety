@@ -1,0 +1,707 @@
+\documentclass{article}
+\usepackage{graphicx} % Required for inserting images
+\usepackage{amsmath}
+\usepackage{fullpage}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\newtheorem{theorem}{Theorem}[section]
+\newtheorem{lemma}[theorem]{Lemma}
+\renewcommand*{\proofname}{Proof}
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}[section]
+\theoremstyle{remark}
+\newtheorem*{remark}{Remark}
+\theoremstyle{example}
+\newtheorem{example}{Example}[section]
+\DeclareMathOperator*{\argmax}{arg\,max}
+\usepackage{pgf}
+\allowdisplaybreaks
+
+\title{Neural networks}
+\author{Lysandre Terrisse}
+
+\newcommand{\tif}{\text{ if }}
+\newcommand{\tor}{\text{or }}
+\newcommand{\ReLU}{\text{ReLU}}
+\newcommand{\pare}[1]{\left(#1\right)}
+
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+\lstdefinestyle{mystyle}{
+  backgroundcolor=\color{backcolour}, commentstyle=\color{codegreen},
+  keywordstyle=\color{magenta},
+  numberstyle=\tiny\color{codegray},
+  stringstyle=\color{codepurple},
+  basicstyle=\ttfamily\footnotesize,
+  breakatwhitespace=false,         
+  breaklines=true,                 
+  captionpos=b,                    
+  keepspaces=true,                 
+  numbers=left,                    
+  numbersep=5pt,                  
+  showspaces=false,                
+  showstringspaces=false,
+  showtabs=false,                  
+  tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\begin{document}
+
+\maketitle
+
+\section{Neurons}
+
+\begin{definition}[Perceptron]
+    A \textit{perceptron} is a function which has a column vector $w = (w_1, \dots, w_n)^\top$ of parameters called \textit{weights}, a parameter $b \in \mathbb{R}$ called \textit{bias}, which takes a column vector $a = (a_1, \dots, a_n)^\top$ of elements called \textit{inputs}, and which outputs the following \textit{activation}:
+    $$\begin{cases}
+        1 & \tif w_1 a_1 + \dots + w_n a_n \geq b ~ (\tor w^\top a \geq b)\\
+        0 & \tif w_1 a_1 + \dots + w_n a_n < b ~ (\tor w^\top a < b)
+    \end{cases}$$
+    Equivalently, the perceptron returns $H(w_1 a_1 + \dots + w_n a_n - b)$ (or $H(w^\top a - b)$), where $H$ is the \textit{Heaviside step function}:
+	$$H(x) = \begin{cases} 1 & \tif x \geq 0 \\ 0 & \tif x < 0 \end{cases}$$
+\end{definition}
+
+\begin{remark}
+    A perceptron can simulate a NAND gate if it takes two inputs, that its weights are $w_1 = w_2 = -1$, and that its bias is $b = -2$
+\end{remark}
+
+
+The problem of perceptrons is that, as they aren't continuous, they have sudden changes in their values, which make it hard to obtain a coherent behavior from a circuit of perceptrons. Furthermore, as they aren't derivable, we cannot easily evaluate in which direction we should change the inputs in order to change the output, which will be crucial later. This introduces the next definition.
+
+\begin{definition}[Sigmoid neuron]
+    A \textit{sigmoid neuron} works the same than a perceptron, except that it returns $\sigma(w^\top a + b) = \sigma(w_1 a_1 + \dots + w_n a_n + b)$, where $\sigma$ is the sigmoid function:
+        $$\sigma(x) = \frac{1}{1 + e^{-x}}$$
+    By convention, when $\sigma$ is applied on a vector, we consider the element wise application of $\sigma$. The sigmoid is a continuous ascending function whose values lie strictly between $-1$ and $1$. It graphically looks like a smoothed version of the step function.
+\end{definition}
+
+\begin{figure}[h!]
+		\centering
+		\scalebox{0.5}{\input{images/sigmoid.pgf}}
+        \caption{The sigmoid function.}
+\end{figure}
+
+\begin{remark}
+    The derivative of the sigmoid function is well defined and is a Bell curve.
+\end{remark}
+
+The only difference we made when going from perceptrons to sigmoid neurons is that we changed from the step function to the sigmoid function. This inspires the next definition.
+
+\begin{definition}[Neuron]
+     A \textit{neuron} is a function has weights and a bias, which takes inputs, and which returns $f(w^\top a + b) = f(w_1 a_1 + \dots + w_n a_n + b)$, where $f$ is called an \textit{activation function}.
+\end{definition}
+
+\begin{example}[Rectified Linear Unit function]
+    The \textit{Rectified Linear Unit function} (or ReLU) is the following activation function:
+        $$\ReLU(x) = \max(0, x)$$
+\end{example}
+
+\begin{remark}
+    Activation functions are important since they are the only components which add nonlinear computation, which is crucial in order to obtain a nonlinear behavior from a circuit of neurons.
+    %Universal Approximation Theorem
+    %https://en.wikipedia.org/wiki/Activation_function#Comparison_of_activation_functions
+\end{remark}
+
+\section{Feedforward}
+
+\begin{definition}[Feedforward Neural Network]
+		A feedforward neural network (FNN) is a circuit of neurons such that:
+		\begin{itemize}
+				\item The neurons are arranged in layers (starting at layer 0 and ending at layer $l$)
+				\item The activations of layer 0 are the inputs given to the circuit. This layer is called the \textit{input layer}.
+				\item The activations of the last layer are the outputs of the circuit. This layer is called the \textit{output layer}.
+				\item The inputs of each neuron are the outputs of the previous layer.
+		\end{itemize}
+\end{definition}
+
+The layers which are neither the input layer nor the output layer are called \textit{hidden layers}. Although the elements of the input layer technically aren't neurons (as they don't have inputs, and therefore don't need weights and biases), we still refer to them as neurons. One of the consequences of the arrangement of neurons in feedforward neural networks is that there are no loops. Although we won't look at them here, there are neural networks which contain cycles, like Recurrent Neural Networks. This enables them to store information for some time before the activations smoothly vanish.\\
+
+For feedforward neural networks, we will use the following notation.
+\begin{itemize}
+    \item Each layer $i \neq 0$ has a matrix of weights $W^{(i)}$. Each line $w^{(i)}_j$ of this matrix contains the weights of neuron $j$ of layer $i$. The entry $w^{(i)}_{j,k}$ is the weight $k$ of neuron $j$ at layer $i$, that is, it is the weight between the neuron $j$ of layer $i$ and neuron $k$ of the previous layer $i-1$.
+    \item Each layer $i \neq 0$ has a vector of biases $b^{(i)}$. Each entry $b^{(i)}_j$ of this vector is the bias of neuron $j$ at layer $i$
+    \item Each layer $i$ has a vector of activations $a^{(i)}$. Each entry $a^{(i)}_j$ of this vector is the activation of neuron $j$ at layer $i$.
+\end{itemize}
+
+To resume, a feedforward neural network has weights, biases, and activations. The first layer's activations (which is the vector $a^{(0)}$) will contain the raw pixel values (between 0 and 1) of the image that we want to classify. To determine the activations of the layer $i \neq 0$, we need to know the activations of the previous layer (the vector $a^{(i-1)}$), the weights of the current layer (the matrix $W^{(i)}$), and the biases of the current layer (the vector $b^{(i)}$). Then, to compute the activation of neuron $j$ at layer $i$, we do:
+    $$a^{(i)}_j = \sigma(w^{(i)}_{j,0} a^{(i-1)}_0 + \dots + w^{(i)}_{j,n} a^{(i-1)}_n + b^{(i)}_j)$$
+
+\begin{figure}[!h]
+    \centering
+    \includegraphics[height=5cm]{Neural network.png}
+    \caption{Representation of layers.}
+\end{figure}
+
+The process of computing the activations from the first layer to the last (in order to obtain the output of the neural network according to some input) is called the \textit{feedforward algorithm}. Since computers are very efficient at manipulating matrices, we will now see how the feedforward algorithm can be easily done using linear algebra.
+
+\begin{theorem}[Feedforward]
+    We have:
+        $$a^{(i)} = \sigma(W^{(i)}a^{(i-1)} + b^{(i)})$$
+\end{theorem}
+
+\begin{proof}
+    $$\sigma(W^{(i)}a^{(i-1)} + b^{(i)}) =
+    \sigma\left(
+        \begin{bmatrix}
+            w_{0, 0}^{(i)} &  w_{0,1}^{(i)} & \dots\\
+            w_{1, 0}^{(i)} &  \ddots\\
+            \vdots
+        \end{bmatrix}
+        \begin{bmatrix}
+            a_0^{(i-1)}\\
+            a_1^{(i-1)}\\
+            \vdots
+        \end{bmatrix}
+        +
+        \begin{bmatrix}
+            b_0^{(i)}\\
+            b_1^{(i)}\\
+            \vdots
+        \end{bmatrix}
+        \right)$$
+    $$=  \begin{bmatrix}
+            \sigma(w_{0,0}^{(i)} a_0^{(i-1)} + w_{0,1}^{(i)} a_1^{(i-1)} + \dots + b_0^{(i)})\\
+            \sigma(w_{1,0}^{(i)} a_0^{(i-1)} + w_{1,1}^{(i)} a_1^{(i-1)} + \dots + b_1^{(i)})\\
+            \vdots
+        \end{bmatrix}
+    = \begin{bmatrix} a_0^{(i)}\\ a_1^{(i)}\\ \vdots \end{bmatrix}
+    = a^{(i)}$$
+\end{proof}
+
+
+
+
+
+%\begin{figure}[!h]
+%  \centering
+%  \begin{minipage}[b]{0.4\textwidth}
+%    \centering
+%    \includegraphics[height=5cm]{Neural network.png}
+%    \caption{Representation of layers.}
+%  \end{minipage}
+%  \hfill
+%  \begin{minipage}[b]{0.5\textwidth}
+%    \centering
+%    \includegraphics[height=5cm]{sigmoid.png}
+%    \caption{The sigmoid function.}
+%  \end{minipage}
+%\end{figure}
+
+\section{Backpropagation and gradient descent}
+
+For a given input, we would want our neural network's output (the last layer $a^{(i)}$) to be equal a given vector $y$. To do that, we will choose a cost function, which tells how far away are $a^{(i)}$ and $y$. Our goal will be to minimize the cost function.
+
+\begin{definition}[Quadratic cost function]
+    The most famous cost function is the quadratic cost function, also called the mean squared error (MSE). It is half of the sum of squared distances between $a^{(i)}$ and $y$:
+        $$Cost(a^{(i)}, y) = \frac{1}{2}(a^{(i)} - y)^2 = \frac{1}{2} \sum_j (a^{(i)}_j - y_j)^2$$
+    Note that, when the neural network's output and the vector $y$ match perfectly, the cost is zero. Whereas when the neural network's output is very far away from $y$, the cost is high. The reason why we divide by 2 is that it simplifies the derivative.
+\end{definition}
+
+\begin{definition}[Cross-Entropy Cost Function]
+    The cross-entropy cost function is defined like so:
+        $$Cost(a^{(i)}, y) = -(y \odot \ln a^{(i)} + (1 - y) \odot \ln (1 - a^{(i)})) = -\sum_j (y_j \ln a^{(i)}_j + (1 - y_j) \ln (1 - a^{(i)}_j))$$
+\end{definition}
+
+To minimize the cost function, every time our network will do a wrong prediction, we will evaluate in which direction we should change the inputs in order to change the output. That is, for every prediction, we will tweak the weights and biases in a way that will reduce the cost. To ensure that our tweaks do indeed reduce the cost function, we will have to compute the gradient of the cost according to each parameter, and then update our parameters in the opposite direction of the gradient (by subtracting a fraction of the gradient to the parameters). This is called gradient descent, since we go down the Cost function according to the gradient.\\
+
+In practice, we do not apply gradient descent for every image we see. Instead, we will compute the gradient for every image, but we will apply gradient descent (for instance) only one time out of ten, with the mean of the ten previously computed gradients. This is in order to get a better approximation as to where to tweak the weights and biases. In this case, we say that we use minibatches of size 10.\\
+
+To compute the gradient of our parameters, we will use a technique called \textit{backpropagation}: we will start from the last layer and repeat recursively on the previous layer. The way I introduce backpropagation is a bit different to what most authors do, because I think that my method is more intuitive, as it doesn't need $\delta$. To compute the gradient of our parameters, we will:
+\begin{itemize}
+    \item Compute the activation gradient $\Delta a^{(i)}$ of the layer $i$ according to the bias gradient $\Delta b^{(i+1)}$ (except for the last layer, where we will compute it from the cost function).
+    \item Compute the bias gradient $\Delta b^{(i)}$ of layer $i$ according to the activation gradient $\Delta a^{(i)}$.
+    \item Compute the weight gradient $\Delta W^{(i)}$ of layer $i$ according to the bias gradient $\Delta b^{(i)}$.
+\end{itemize}
+
+We will now see how to use linear algebra to compute each of these gradients. For the gradient of the activations, we need to consider two cases: the case of the last layer, and the case of the other layers. The gradient of the last layer's activations is determined by the cost function that we are using. In our case, we will use the cross-entropy cost function, as it performs better for many tasks.
+
+\begin{theorem}[Gradient of the activations of the last layer]
+    If we use the cross-entropy cost function, then for the last layer $i$, we have:
+        $$\Delta a^{(i)} = \frac{a^{(i)} - y}{a^{(i)} \odot (1 - a^{(i)})}$$
+    where the division is the element wise division.
+\end{theorem}
+
+\begin{proof}
+$$
+\Delta a^{(i)} =
+\begin{bmatrix}
+    \frac{\partial Cost}{\partial a^{(i)}_0}\\
+    \frac{\partial Cost}{\partial a^{(i)}_1}\\
+    \vdots
+\end{bmatrix}
+=
+\begin{bmatrix}
+    \frac{\partial -\sum_j (y_j \ln a^{(i)}_j + (1 - y_j) \ln (1 - a^{(i)}_j))}{\partial a^{(i)}_0}\\
+    \frac{\partial -\sum_j (y_j \ln a^{(i)}_j + (1 - y_j) \ln (1 - a^{(i)}_j))}{\partial a^{(i)}_1}\\
+    \vdots
+\end{bmatrix}
+=
+\begin{bmatrix}
+    \frac{\partial -(y_0 \ln a^{(i)}_0 + (1 - y_0) \ln (1 - a^{(i)}_0))}{\partial a^{(i)}_0}\\
+    \frac{\partial -(y_1 \ln a^{(i)}_1 + (1 - y_1) \ln (1 - a^{(i)}_1))}{\partial a^{(i)}_1}\\
+    \vdots
+\end{bmatrix}
+=$$
+$$\begin{bmatrix}
+    -\pare{\frac{y_0}{a^{(i)}_0} - \frac{1 - y_0}{1 - a^{(i)}_0}}\\
+    -\pare{\frac{y_1}{a^{(i)}_1} - \frac{1 - y_1}{1 - a^{(i)}_1}}\\
+    \vdots
+\end{bmatrix}
+=
+\begin{bmatrix}
+    -\pare{\frac{y_0(1 - a^{(i)}_0)}{a^{(i)}_0(1 - a^{(i)}_0)} - \frac{a^{(i)}_0(1 - y_0)}{a^{(i)}_0(1 - a^{(i)}_0)}}\\
+    -\pare{\frac{y_1(1 - a^{(i)}_1)}{a^{(i)}_1(1 - a^{(i)}_1)} - \frac{a^{(i)}_1(1 - y_1)}{a^{(i)}_1(1 - a^{(i)}_1)}}\\
+    \vdots
+\end{bmatrix}
+=
+\begin{bmatrix}
+    -\pare{\frac{y_0(1 - a^{(i)}_0) - a^{(i)}_0(1 - y_0)}{a^{(i)}_0(1 - a^{(i)}_0)}}\\
+    -\pare{\frac{y_1(1 - a^{(i)}_1) - a^{(i)}_1(1 - y_1)}{a^{(i)}_1(1 - a^{(i)}_1)}}\\
+    \vdots
+\end{bmatrix}$$
+$$=
+\begin{bmatrix}
+    -\pare{\frac{y_0 - y_0 a^{(i)}_0 - a^{(i)}_0 + a^{(i)}_0 y_0}{a^{(i)}_0(1 - a^{(i)}_0)}}\\
+    -\pare{\frac{y_1 - y_1 a^{(i)}_1 - a^{(i)}_1 + a^{(i)}_1 y_1}{a^{(i)}_1(1 - a^{(i)}_1)}}\\
+    \vdots
+\end{bmatrix}
+=
+\begin{bmatrix}
+    \frac{a^{(i)}_0 - y_0}{a^{(i)}_0(1 - a^{(i)}_0)}\\
+    \frac{a^{(i)}_1 - y_1}{a^{(i)}_1(1 - a^{(i)}_1)}\\
+    \vdots
+\end{bmatrix}
+= \frac{a^{(i)} - y}{a^{(i)} \odot (1 - a^{(i)})}
+$$
+\end{proof}
+
+
+\begin{theorem}[Gradient of the activations of the other layers]
+    For every layer $i$ other than the last one, we have:
+        $$\Delta a^{(i)} = W^{(i+1)\top} \Delta b^{(i+1)}$$
+\end{theorem}
+
+\begin{proof}
+    Let $z^{(i)}_j = w_{j,0}^{(i)} a_0^{(i-1)} + w_{j,1}^{(i)} a_1^{(i-1)} + \dots + b_j^{(i)}$.
+$$W^{(i+1)\top} \Delta b^{(i+1)} =
+\begin{bmatrix}
+    w_{0,0}^{(i+1)} & w_{0,1}^{(i+1)} & \dots\\
+    w_{1,0}^{(i+1)} & \ddots\\
+    \vdots
+\end{bmatrix}^\top
+\begin{bmatrix}
+    \frac{\partial Cost}{\partial b_0^{(i+1)}}\\
+    \frac{\partial Cost}{\partial b_1^{(i+1)}}\\
+    \vdots
+\end{bmatrix}
+= \begin{bmatrix}
+    \frac{\partial z^{(i+1)}_0}{\partial a^{(i)}_0} & \frac{\partial z^{(i+1)}_0}{\partial a^{(i)}_1} & \dots\\
+    \frac{\partial z^{(i+1)}_1}{\partial a^{(i)}_0} & \ddots\\
+    \vdots
+\end{bmatrix}^\top
+\begin{bmatrix}
+    \frac{\partial Cost}{\partial z^{(i+1)}_0} \frac{\partial z^{(i+1)}_0}{\partial b_0^{(i+1)}}\\
+    \frac{\partial Cost}{\partial z^{(i+1)}_1} \frac{\partial z^{(i+1)}_1}{\partial b_1^{(i+1)}}\\
+    \vdots
+\end{bmatrix}$$
+$$= \begin{bmatrix}
+    \frac{\partial z^{(i+1)}_0}{\partial a^{(i)}_0} & \frac{\partial z^{(i+1)}_0}{\partial a^{(i)}_1} & \dots\\
+    \frac{\partial z^{(i+1)}_1}{\partial a^{(i)}_0} & \ddots\\
+    \vdots
+\end{bmatrix}^\top
+\begin{bmatrix}
+    \frac{\partial Cost}{\partial z^{(i+1)}_0}\\
+    \frac{\partial Cost}{\partial z^{(i+1)}_1}\\
+    \vdots
+\end{bmatrix}
+=\begin{bmatrix}
+    \frac{\partial Cost}{\partial z^{(i+1)}_0} \frac{\partial z^{(i+1)}_0}{\partial a^{(i)}_0} + \frac{\partial Cost}{\partial z^{(i+1)}_1} \frac{\partial z^{(i+1)}_1}{\partial a^{(i)}_0} + \dots\\
+    \frac{\partial Cost}{\partial z^{(i+1)}_0} \frac{\partial z^{(i+1)}_0}{\partial a^{(i)}_1} + \frac{\partial Cost}{\partial z^{(i+1)}_1} \frac{\partial z^{(i+1)}_1}{\partial a^{(i)}_1} + \dots\\
+    \vdots
+\end{bmatrix}
+=\begin{bmatrix}
+    \frac{\partial Cost}{\partial a_0^{(i)}}\\
+    \frac{\partial Cost}{\partial a_1^{(i)}}\\
+    \vdots
+\end{bmatrix}
+= \Delta a^{(i)}$$
+\end{proof}
+
+
+\begin{theorem}[Gradient of the biases]
+    We have:
+        $$\Delta b^{(i)} = \Delta a^{(i)} \odot a^{(i)} \odot (1 - a^{(i)})$$
+\end{theorem}
+
+\begin{proof}
+    Let $z^{(i)}_j = w_{j,0}^{(i)} a_0^{(i-1)} + w_{j,1}^{(i)} a_1^{(i-1)} + \dots + b_j^{(i)}$.
+    $$\Delta a^{(i)} \odot a^{(i)} \odot (1 - a^{(i)}) =
+        \begin{bmatrix}
+            \frac{\partial Cost}{\partial a_0^{(i)}}\\
+            \frac{\partial Cost}{\partial a_1^{(i)}}\\
+            \vdots
+        \end{bmatrix} \odot
+        \begin{bmatrix}
+            a_0^{(i)}\\
+            a_1^{(i)}\\
+            \vdots
+        \end{bmatrix} \odot
+        \left(1 - 
+        \begin{bmatrix}
+            a_0^{(i)}\\
+            a_1^{(i)}\\
+            \vdots
+        \end{bmatrix}\right)
+    = \begin{bmatrix}
+            \frac{\partial Cost}{\partial a_0^{(i)}} a_0^{(i)}(1 - a_0^{(i)})\\
+            \frac{\partial Cost}{\partial a_1^{(i)}} a_1^{(i)}(1 - a_1^{(i)})\\
+            \vdots
+        \end{bmatrix}$$
+    $$= \begin{bmatrix}
+            \frac{\partial Cost}{\partial a_0^{(i)}} \sigma(z^{(i)}_0)(1 - \sigma(z^{(i)}_0))\\
+            \frac{\partial Cost}{\partial a_1^{(i)}} \sigma(z^{(i)}_1)(1 - \sigma(z^{(i)}_1))\\
+            \vdots
+        \end{bmatrix}
+    = \begin{bmatrix}
+            \frac{\partial Cost}{\partial a_0^{(i)}} \frac{\partial \sigma(z^{(i)}_0)}{\partial z^{(i)}_0}\\
+            \frac{\partial Cost}{\partial a_1^{(i)}} \frac{\partial \sigma(z^{(i)}_1)}{\partial z^{(i)}_1}\\
+            \vdots
+        \end{bmatrix}
+    = \begin{bmatrix}
+            \frac{\partial Cost}{\partial a_0^{(i)}} \frac{\partial \sigma(z^{(i)}_0)}{\partial z^{(i)}_0} \frac{\partial z^{(i)}_0}{\partial b^{(i)}_0}\\
+            \frac{\partial Cost}{\partial a_1^{(i)}} \frac{\partial \sigma(z^{(i)}_1)}{\partial z^{(i)}_1} \frac{\partial z^{(i)}_1}{\partial b^{(i)}_1}\\
+            \vdots
+        \end{bmatrix}
+    = \begin{bmatrix}
+            \frac{\partial Cost}{\partial b_0^{(i)}}\\
+            \frac{\partial Cost}{\partial b_1^{(i)}}\\
+            \vdots
+        \end{bmatrix}
+    = \Delta b^{(i)}$$
+\end{proof}
+
+\begin{theorem}[Gradient of the weights]
+    We have:
+        $$\Delta W^{(i)} = \Delta b^{(i)} \otimes a^{(i-1)}$$
+\end{theorem}
+
+\begin{proof}
+    Let $z^{(i)}_j = w_{j,0}^{(i)} a_0^{(i-1)} + w_{j,1}^{(i)} a_1^{(i-1)} + \dots + b_j^{(i)}$.
+
+$$\Delta b^{(i)} \otimes a^{(i-1)}
+=
+\begin{bmatrix}
+    \frac{\partial Cost}{\partial b_0^{(i)}}\\
+    \frac{\partial Cost}{\partial b_1^{(i)}}\\
+    \vdots
+\end{bmatrix}
+\otimes
+\begin{bmatrix}
+    a_0^{(i-1)}\\
+    a_1^{(i-1)}\\
+    \vdots
+\end{bmatrix}
+= \begin{bmatrix}
+    \frac{\partial Cost}{\partial z^{(i)}_0} \frac{\partial z^{(i)}_0}{\partial b_0^{(i)}}\\
+    \frac{\partial Cost}{\partial z^{(i)}_1} \frac{\partial z^{(i)}_1}{\partial b_1^{(i)}}\\
+    \vdots
+\end{bmatrix}
+\otimes
+\begin{bmatrix}
+    a_0^{(i-1)}\\
+    a_1^{(i-1)}\\
+    \vdots
+\end{bmatrix}
+= \begin{bmatrix}
+    \frac{\partial Cost}{\partial z^{(i)}_0}\\
+    \frac{\partial Cost}{\partial z^{(i)}_1}\\
+    \vdots
+\end{bmatrix}
+\otimes
+\begin{bmatrix}
+    a_0^{(i-1)}\\
+    a_1^{(i-1)}\\
+    \vdots
+\end{bmatrix}$$
+$$=\begin{bmatrix}
+    \frac{\partial Cost}{\partial z^{(i)}_0} a_0^{(i-1)} & \frac{\partial Cost}{\partial z^{(i)}_0} a_1^{(i-1)} & \dots\\
+    \frac{\partial Cost}{\partial z^{(i)}_1} a_0^{(i-1)} & \ddots\\
+    \vdots
+\end{bmatrix}
+=\begin{bmatrix}
+    \frac{\partial Cost}{\partial z^{(i)}_0} \frac{\partial z^{(i)}_0}{\partial w^{(i)}_{0,0}} &
+    \frac{\partial Cost}{\partial z^{(i)}_0} \frac{\partial z^{(i)}_0}{\partial w^{(i)}_{0,1}} & \dots\\
+    \frac{\partial Cost}{\partial z^{(i)}_1} \frac{\partial z^{(i)}_1}{\partial w^{(i)}_{1,0}} & \ddots\\
+    \vdots
+\end{bmatrix}
+=\begin{bmatrix}
+    \frac{\partial Cost}{\partial w_{0,0}^{(i)}} & \frac{\partial Cost}{\partial w_{0,1}^{(i)}} & \dots\\
+    \frac{\partial Cost}{\partial w_{1,0}^{(i)}} & \ddots\\
+    \vdots
+\end{bmatrix}
+=\Delta W^{(i)}$$
+\end{proof}
+
+
+
+
+\newpage
+\section{Writing the neural network in Python}
+
+To implement the neural network in Python, we will first have to import the training data and the testing data. The training data I use is the MNIST handwritten digit database, which contains 60,000 training images/labels, and 10,000 test images/labels. As the name suggests, the MNIST database contains images of handwritten digits between 0 and 9, using 28*28 pixels whose values range between 0 and 255. The labels of these images tell which digits are written. While importing the training data, we will convert the pixel values into floating-point numbers between 0 and 1. We will also change the images' and labels' dimensions so that they fit into the first and last layers. That is, the images will be converted into a vector of length 784, while the labels will be converted into a vector of length 10 (with zeros everywhere except for a 1 at the corresponding index).
+\begin{lstlisting}[language=Python]
+import numpy as np
+import gzip
+
+def get_data(path_images, path_labels, n_elements):
+	with gzip.open(path_images, "rb") as fd1, gzip.open(path_labels, "rb") as fd2:
+		fd1.read(16)
+		fd2.read(8)
+		images = np.split(np.array(list(fd1.read()))/255, n_elements)
+		labels = [np.arange(10)==label for label in list(fd2.read())]
+		return list(zip(images, labels))
+
+training_data = get_data("train-images-idx3-ubyte.gz", "train-labels-idx1-ubyte.gz", 60000)
+test_data = get_data("t10k-images-idx3-ubyte.gz", "t10k-labels-idx1-ubyte.gz", 10000)
+\end{lstlisting}
+
+~
+
+Then, we program the sigmoid function.
+\begin{lstlisting}[language=Python]
+def sigmoid(x):
+	return 1 / (1 + np.exp(-x))
+\end{lstlisting}
+
+~
+
+Then, we create a class \texttt{Neural\_network}. The constructor of this neural network will take an array, like \texttt{[784, 400, 10]}, and will create a neural network whose initial layer contains 784 neurons, whose second layers contains 400 neurons, and whose last layer contains 10 neurons. The weights will be initialized using a Gaussian distribution of mean 0 and variance $\frac{1}{\sqrt{\text{length of previous layer}}}$, whereas the biases will be initialized using a Gaussian distribution of mean 0 and variance 1.
+\begin{lstlisting}[language=Python]
+def __init__(self, shape, is_random=False):
+	self.shape = shape
+	self.W = np.array([np.random.randn(y, x)/np.sqrt(x) if is_random else np.empty([y, x]) for x, y in zip([0] + shape[:-1], [0] + shape[1:])], dtype=object)
+	self.b = np.array([np.random.randn(size_layer) if is_random else np.empty(size_layer) for size_layer in [0] + shape[1:]], dtype=object)
+	self.a = np.array([np.empty(size_layer) for size_layer in shape], dtype=object)
+\end{lstlisting}
+
+~
+
+In this class, using the formula $a^{(i)} = \sigma(W^{(i)}a^{(i-1)} + b^{(i)})$ found in section 2, we will create a method \texttt{feedforward}, which computes $a^{(i)}$ for all $i$.
+
+\begin{lstlisting}[language=Python]
+def feedforward(self, image):
+	W, b, a = self.W, self.b, self.a
+	a[0] = image
+	for i in range(1, len(self.shape)):
+		a[i] = sigmoid(np.dot(W[i], a[i-1]) + b[i])
+			
+	return a[-1]
+\end{lstlisting}
+
+\newpage
+Using the formulas just below, found in section 3, 4, and 5, we can create a method that returns $\Delta b^{(i)}$ and $\Delta W^{(i)}$ for all $i$ except for the first layer (which doesn't contain any weight or bias). This will require us to also compute $\Delta a^{(i)}$, as mentioned in the introduction.
+\begin{itemize}
+    \item $\Delta b^{(i)} = \Delta a^{(i)} \odot a^{(i)} \odot (1 - a^{(i)})$
+    \item $\Delta W^{(i)} = \Delta b^{(i)} \otimes a^{(i-1)}$
+    \item $\Delta a^{(i)} = \frac{a^{(i)} - y}{a^{(i)} \odot (1 - a^{(i)})}$ if $i$ is the last layer else $\Delta a^{(i)} = W^{(i+1)\top} \Delta b^{(i+1)}$
+\end{itemize}
+\begin{lstlisting}[language=Python]
+def backpropagation(self, y):
+	W, b, a = self.W, self.b, self.a
+	gradient = Neural_network(self.shape)
+	
+	for i in range(len(self.shape)-1, 0, -1):
+		gradient.a[i] = (a[i] - y) / (a[i] * (1 - a[i]) + 1e-5) if i==len(self.shape)-1 else np.dot(W[i+1].T, gradient.b[i+1])
+		gradient.b[i] = gradient.a[i] * a[i] * (1 - a[i])
+		gradient.W[i] = np.outer(gradient.b[i], a[i-1])
+			
+	return gradient
+\end{lstlisting}
+
+~
+
+Then, we create a method that applies gradient descent: It takes many gradients, computes the average of them, and removes a fraction of this average from the weights and biases.
+\begin{lstlisting}[language=Python]
+def gradient_descent(self, gradients, learning_rate):
+		self.W -= sum([gradient.W for gradient in gradients]) * (learning_rate/len(gradients))
+		self.b -= sum([gradient.b for gradient in gradients]) * (learning_rate/len(gradients))
+\end{lstlisting}
+
+~
+
+Now that our class is complete, we are ready to use our neural network. We just need to split the training data into minibatches, to apply feedforward and backpropagation for each picture of the minibatch to compute and store the gradients, and then to apply gradient descent at the end of each minibatch. Optionally, we can also count the number of right predictions in the training and test examples.
+\begin{lstlisting}[language=Python]
+def learn(training_data, test_data, shape, learning_rate, minibatch_size):
+	neural_network = Neural_network(shape, True)
+	minibatches = [training_data[i:i+minibatch_size] for i in range(0, len(training_data), minibatch_size)]
+	epoch = 0
+	
+	while True:
+		n_right_train = 0
+		for minibatch in minibatches:
+			gradients = []
+			for image, label in minibatch:
+				n_right_train += np.argmax(neural_network.feedforward(image))==np.argmax(label)
+				gradients.append(neural_network.backpropagation(label))
+			neural_network.gradient_descent(gradients, learning_rate)
+		
+		n_right_test = sum([np.argmax(neural_network.feedforward(image))==np.argmax(label) for image, label in test_data])
+		
+		epoch += 1
+		print(f"Epoch {epoch}: {n_right_train}/{len(training_data)} {n_right_test}/{len(test_data)}")
+
+learn(training_data, test_data, [28*28, 400, 10], 0.5, 10)
+\end{lstlisting}
+
+\newpage
+\section{Results}
+
+With the parameters given above (which were the best ones I found), the neural network's accuracy starts by growing up to 98.4\%, and then goes back to 98.3\% due to overfitting. Here is an example of what the program can output.
+\begin{lstlisting}[basicstyle=\scriptsize]
+Epoch 1: 55736/60000 9615/10000
+Epoch 2: 58318/60000 9709/10000
+Epoch 3: 58891/60000 9767/10000
+Epoch 4: 59235/60000 9782/10000
+Epoch 5: 59455/60000 9788/10000
+Epoch 6: 59619/60000 9798/10000
+Epoch 7: 59753/60000 9795/10000
+Epoch 8: 59848/60000 9813/10000
+Epoch 9: 59909/60000 9807/10000
+Epoch 10: 59943/60000 9815/10000
+Epoch 11: 59969/60000 9816/10000
+Epoch 12: 59983/60000 9814/10000
+Epoch 13: 59989/60000 9818/10000
+Epoch 14: 59997/60000 9814/10000
+Epoch 15: 59999/60000 9815/10000
+Epoch 16: 59999/60000 9819/10000
+Epoch 17: 59999/60000 9821/10000
+Epoch 18: 60000/60000 9826/10000
+Epoch 19: 60000/60000 9829/10000
+Epoch 20: 60000/60000 9831/10000
+Epoch 21: 60000/60000 9830/10000
+Epoch 22: 60000/60000 9830/10000
+Epoch 23: 60000/60000 9832/10000
+Epoch 24: 60000/60000 9833/10000
+Epoch 25: 60000/60000 9834/10000
+Epoch 26: 60000/60000 9832/10000
+Epoch 27: 60000/60000 9836/10000
+Epoch 28: 60000/60000 9837/10000
+Epoch 29: 60000/60000 9839/10000
+Epoch 30: 60000/60000 9840/10000
+Epoch 31: 60000/60000 9839/10000
+Epoch 32: 60000/60000 9838/10000
+Epoch 33: 60000/60000 9838/10000
+Epoch 34: 60000/60000 9838/10000
+Epoch 35: 60000/60000 9838/10000
+Epoch 36: 60000/60000 9839/10000
+Epoch 37: 60000/60000 9839/10000
+Epoch 38: 60000/60000 9839/10000
+Epoch 39: 60000/60000 9838/10000
+Epoch 40: 60000/60000 9838/10000
+Epoch 41: 60000/60000 9838/10000
+Epoch 42: 60000/60000 9839/10000
+Epoch 43: 60000/60000 9839/10000
+Epoch 44: 60000/60000 9838/10000
+Epoch 45: 60000/60000 9836/10000
+Epoch 46: 60000/60000 9836/10000
+Epoch 47: 60000/60000 9836/10000
+Epoch 48: 60000/60000 9834/10000
+Epoch 49: 60000/60000 9833/10000
+Epoch 50: 60000/60000 9833/10000
+Epoch 51: 60000/60000 9833/10000
+Epoch 52: 60000/60000 9833/10000
+Epoch 53: 60000/60000 9833/10000
+Epoch 54: 60000/60000 9833/10000
+Epoch 55: 60000/60000 9833/10000
+Epoch 56: 60000/60000 9833/10000
+Epoch 57: 60000/60000 9833/10000
+Epoch 58: 60000/60000 9833/10000
+Epoch 59: 60000/60000 9832/10000
+Epoch 60: 60000/60000 9832/10000
+Epoch 61: 60000/60000 9832/10000
+Epoch 62: 60000/60000 9832/10000
+Epoch 63: 60000/60000 9832/10000
+Epoch 64: 60000/60000 9832/10000
+\end{lstlisting}
+
+
+\newpage
+\section{Appendix}
+\begin{lstlisting}[language=Python, basicstyle=\scriptsize]
+import numpy as np
+import gzip
+
+def get_data(path_images, path_labels, n_elements):
+	with gzip.open(path_images, "rb") as fd1, gzip.open(path_labels, "rb") as fd2:
+		fd1.read(16)
+		fd2.read(8)
+		images = np.split(np.array(list(fd1.read()))/255, n_elements)
+		labels = [np.arange(10)==label for label in list(fd2.read())]
+		return list(zip(images, labels))
+
+def sigmoid(x):
+	return 1 / (1 + np.exp(-x))
+
+class Neural_network:
+	def __init__(self, shape, is_random=False):
+		self.shape = shape
+		self.W = np.array([np.random.randn(y, x)/np.sqrt(x) if is_random else np.empty([y, x]) for x, y in zip([0] + shape[:-1], [0] + shape[1:])], dtype=object)
+		self.b = np.array([np.random.randn(size_layer) if is_random else np.empty(size_layer) for size_layer in [0] + shape[1:]], dtype=object)
+		self.a = np.array([np.empty(size_layer) for size_layer in shape], dtype=object)
+	
+	def feedforward(self, image):
+		W, b, a = self.W, self.b, self.a
+		a[0] = image
+		for i in range(1, len(self.shape)):
+			a[i] = sigmoid(np.dot(W[i], a[i-1]) + b[i])
+			
+		return a[-1]
+	
+	def backpropagation(self, y):
+		W, b, a = self.W, self.b, self.a
+		gradient = Neural_network(self.shape)
+		
+		for i in range(len(self.shape)-1, 0, -1):
+			gradient.a[i] = (a[i] - y) / (a[i] * (1 - a[i]) + 1e-5) if i==len(self.shape)-1 else np.dot(W[i+1].T, gradient.b[i+1])
+			gradient.b[i] = gradient.a[i] * a[i] * (1 - a[i])
+			gradient.W[i] = np.outer(gradient.b[i], a[i-1])
+			
+		return gradient
+	
+	def gradient_descent(self, gradients, learning_rate):
+		self.W -= sum([gradient.W for gradient in gradients]) * (learning_rate/len(gradients))
+		self.b -= sum([gradient.b for gradient in gradients]) * (learning_rate/len(gradients))
+
+def learn(training_data, test_data, shape, learning_rate, minibatch_size):
+	neural_network = Neural_network(shape, True)
+	minibatches = [training_data[i:i+minibatch_size] for i in range(0, len(training_data), minibatch_size)]
+	epoch = 0
+	
+	while True:
+		n_right_train = 0
+		for minibatch in minibatches:
+			gradients = []
+			for image, label in minibatch:
+				n_right_train += np.argmax(neural_network.feedforward(image))==np.argmax(label)
+				gradients.append(neural_network.backpropagation(label))
+			neural_network.gradient_descent(gradients, learning_rate)
+		
+		n_right_test = sum([np.argmax(neural_network.feedforward(image))==np.argmax(label) for image, label in test_data])
+		
+		epoch += 1
+		print(f"Epoch {epoch}: {n_right_train}/{len(training_data)} {n_right_test}/{len(test_data)}")
+
+training_data = get_data("train-images-idx3-ubyte.gz", "train-labels-idx1-ubyte.gz", 60000)
+test_data = get_data("t10k-images-idx3-ubyte.gz", "t10k-labels-idx1-ubyte.gz", 10000)
+learn(training_data, test_data, [28*28, 400, 10], 0.5, 10)
+\end{lstlisting}
+
+
+\end{document}
+
