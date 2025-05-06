@@ -1,7 +1,7 @@
 import pandas as pd
 import matplotlib as mpl
 import matplotlib.pyplot as plt
-
+import numpy as np
 
 def ordinary_least_squares(x, y, precision=2):
     x_mean, y_mean = sum(x)/len(x), sum(y)/len(y)
@@ -47,3 +47,10 @@ plt.savefig('OLS_climate_change.' + extension)
 for i in range(len(x)):
     plt.plot([x[i], x[i]], [y[i], beta_0 + beta_1 * x[i]], "r")
 plt.savefig('OLS_climate_change_with_residuals.' + extension)
+
+"""Create picture of sigmoid"""
+x = np.linspace(-5, 5, 100)
+sigmoid_x = 1/(1 + np.exp(-x))
+plt.plot(x, sigmoid_x)
+plt.grid()
+plt.savefig('sigmoid.' + extension)
