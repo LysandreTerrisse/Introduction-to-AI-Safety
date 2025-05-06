@@ -47,6 +47,7 @@ plt.savefig('OLS_climate_change.' + extension)
 for i in range(len(x)):
     plt.plot([x[i], x[i]], [y[i], beta_0 + beta_1 * x[i]], "r")
 plt.savefig('OLS_climate_change_with_residuals.' + extension)
+plt.clf()
 
 """Create picture of sigmoid"""
 x = np.linspace(-5, 5, 100)
