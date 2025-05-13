@@ -17,13 +17,18 @@
 \usepackage{outlines}
 \allowdisplaybreaks
 
+\newcommand{\tif}{\text{if }}
+
 \title{Measure Theory}
 \author{Lysandre Terrisse}
 
 \begin{document}
 \maketitle
 
-\section{Measure theory}
+%https://www.math.lsu.edu/~sengupta/7312s02/sigmaalg.pdf
+%https://moodle.umontpellier.fr/pluginfile.php/2373208/mod_resource/content/12/HAX503X-poly.pdf
+
+\section{Measurable space and $\sigma$-algebra}
 
 \begin{definition}[Measurable space and $\sigma$-algebra]
     Let $X$ be a set. A \textit{measurable space} is a couple $(X, \mathcal{A})$ where $\mathcal{A}$ is a \textit{$\sigma$-algebra} of $X$. That is, $\mathcal{A}$ is a set of subsets of $X$, called \textit{measurable sets}, such that:
@@ -32,7 +37,7 @@
             $$X \in \mathcal{A}$$
         \item Complements of measurable sets are measurable:
             $$\forall A \in \mathcal{A}, A^c \in \mathcal{A}$$
-        \item Countable unions of measurable sets are measurable: For all countable family $(A_i)_{i \in \mathbb{N}}$ over measurable sets:
+        \item Countable unions of measurable sets are measurable: For all countable family $(A_i)_{i \in \mathbb{N}}$ of measurable sets:
             $$\bigcup_{i \in \mathbb{N}} A_i \in \mathcal{A}$$
     \end{itemize}
 \end{definition}
@@ -98,18 +103,58 @@
     Firstly, $\bigcap_{\mathcal{A} \in Z} \mathcal{A}$ is an intersection of $\sigma$-algebras of $X$, and is therefore a $\sigma$-algebra of $X$. Secondly, as $Y \subseteq \mathcal{A}$ for all $\mathcal{A} \in Z$, we have that $Y \subseteq \bigcap_{\mathcal{A} \in Z} \mathcal{A}$. Thirdly, $\bigcap_{\mathcal{A} \in Z} \mathcal{A} \subseteq \mathcal{A}'$ for all $\mathcal{A}' \in Z$. Therefore, $\bigcap_{\mathcal{A} \in Z} \mathcal{A}$ respects all the conditions of the $\sigma$-algebra, meaning that $\sigma(Y) = \bigcap_{\mathcal{A} \in Z} \mathcal{A}$.
 \end{proof}
 
+
+\section{Measure spaces and measures}
+
+\begin{definition}[Measure spaces and measures]
+    Let $(X, \mathcal{A})$ be a measurable space. A measure space is a tuple $(X, \mathcal{A}, \mu)$, where $\mu$ is a \textit{measure} over $(X, \mathcal{A})$. That is, $\mu$ is a function of type $\mathcal{A} \rightarrow \mathbb{R}_+ \cup \{\infty\}$ such that:
+    \begin{itemize}
+        \item $\mu(\varnothing) = 0$
+        \item For all countable family $(A_i)_{i \in \mathbb{N}}$ of disjoint measurable sets of $\mathcal{A}$, we have:
+            $$\mu(\bigcup_{i \in \mathbb{N}} A_i) = \sum_{i \in \mathbb{N}} \mu(A_i)$$
+    \end{itemize}
+\end{definition}
+
+\begin{remark}
+    Do not be mistaken between measurable spaces and measure spaces. A measure space is a measurable space with a measure.
+\end{remark}
+
+\begin{definition}[Negligible set]
+    Let $(X, \mathcal{A}, \mu)$ be a measure space. For all $A \in \mathcal{A}$, we say that $A$ is \textit{negligible} when $\mu(A) = 0$. For instance, the empty set is always negligible.
+\end{definition}
+
+\begin{definition}[Dirac measure]
+    Let $(X, \mathcal{A})$ be a measurable space, and let $x \in X$. The \textit{Dirac measure at $x$} is defined as:
+        $$\delta_x : \mathcal{A} \rightarrow \mathbb{R}_+ \cup \{\infty\}$$
+        $$A \mapsto \begin{cases} 1 & \tif x \in A\\ 0 & \tif x \notin A\end{cases}$$
+    Let's prove that the Dirac measure is indeed a measure. Firstly, as $x \notin \varnothing$, then $\delta_x(\varnothing) = 0$. Secondly, let $(A_i)_{i \in \mathbb{N}}$ be a countable family of disjoint measurable sets. We have two cases:
+    \begin{itemize}
+        \item If $x \in \bigcup_{i \in \mathbb{N}} A_i$, then, as the $A_i$ are disjoint, there exists a unique $j \in \mathbb{N}$ such that $x \in A_j$, and for all other $i \in \mathbb{N} \setminus \{j\}$, $x \notin A_i$. Therefore:
+            $$\sum_{i \in \mathbb{N}} \delta_x(A_i) = \delta_x(A_j) + \sum_{i \in \mathbb{N} \setminus \{j\}} \delta_x(A_i) = 1 + \sum_{i \in \mathbb{N}} 0 = 1 = \delta_x(\bigcup_{i \in \mathbb{N}} A_i)$$
+        \item If $x \notin \bigcup_{i \in \mathbb{N}} A_i$, then for all $i \in \mathbb{N}$, $x \notin A_i$, and therefore:
+        $$\sum_{i \in \mathbb{N}} \delta_x(A_i) = \sum_{i \in \mathbb{N}} 0 = 0 = \delta_x(\bigcup_{i \in \mathbb{N}} A_i)$$
+    \end{itemize}
+\end{definition}
+
+\begin{definition}[Total mass]
+    Let $(X, \mathcal{A}, \mu)$ be a measure space. The total mass of $\mu$ is $\mu(X)$.
+\end{definition}
+
+\begin{definition}[Finiteness and $\sigma$-finiteness]
+    We say that $\mu$ is finite when its total mass isn't $\infty$, and we say that $\mu$ is $\sigma$-finite when there exists a countable family $(A_i)_{i \in \mathbb{N}}$ such that:
+    \begin{itemize}
+        \item $(A_i)_{i \in \mathbb{N}}$ is increasing according to $\subseteq$:
+            $$\forall i \in \mathbb{N}, A_i \subseteq A_{i+1}$$
+        \item $(A_i)_{i \in \mathbb{N}}$ converges towards $X$:
+            $$X = \bigcup_{i \in \mathbb{N}} A_i$$
+        \item $(A_i)_{i \in \mathbb{N}}$ has no element of infinite mass:
+            $$\forall i \in \mathbb{N}, \mu(A_i) \neq \infty$$
+    \end{itemize}
+\end{definition}
+
+\begin{remark}
+    Finiteness implies $\sigma$-finiteness, but $\sigma$-finiteness doesn't necessarily imply finiteness.
+\end{remark}
+
+
 \end{document}
-
-
-
-
-%https://www.math.lsu.edu/~sengupta/7312s02/sigmaalg.pdf
-%https://moodle.umontpellier.fr/pluginfile.php/2373208/mod_resource/content/12/HAX503X-poly.pdf
-
-
-
-
-
-
-
-
