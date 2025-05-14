@@ -119,21 +119,28 @@
     Do not be mistaken between measurable spaces and measure spaces. A measure space is a measurable space with a measure.
 \end{remark}
 
+\begin{theorem}[Positive linear combinations of measures are measures]
+    Let $(X, \mathcal{A})$ be a measurable space, let $(\mu_i)_{i \in \mathbb{N}}$ be a countable family of measures over $(X, \mathcal{A})$, and let $(a_i)_{i \in \mathbb{N}}$ be a countable family of elements of $\mathbb{R}_+$. Then $\mu = \sum_{i \in \mathbb{N}} a_i \mu_i$ is a measure over $(X, \mathcal{A})$.
+\end{theorem}
+
+\begin{proof}~
+    \begin{itemize}
+        \item $\left(\sum_{i \in \mathbb{N}} a_i \mu_i\right)(\varnothing) = \sum_{i \in \mathbb{N}} a_i \mu_i(\varnothing) = \sum_{i \in \mathbb{N}} 0 = 0$
+        \item Let $(A_j)_{j \in \mathbb{N}}$ be a countable family of distinct measurable sets of $\mathcal{A}$. Then we have:
+        \begin{align*}
+            \mu(\bigcup_{j \in \mathbb{N}} A_j) &= \left(\sum_{i \in \mathbb{N}} a_i \mu_i\right)(\bigcup_{j \in \mathbb{N}} A_j)\\
+            &= \sum_{i \in \mathbb{N}} a_i \mu_i(\bigcup_{j \in \mathbb{N}} A_j)\\
+            &= \sum_{i \in \mathbb{N}} a_i \sum_{j \in \mathbb{N}} \mu_i(A_j)\\
+            &= \sum_{i \in \mathbb{N}} \sum_{j \in \mathbb{N}} a_i \mu_i(A_j)\\
+            &= \sum_{j \in \mathbb{N}} \sum_{i \in \mathbb{N}} a_i \mu_i(A_j)\\
+            &= \sum_{j \in \mathbb{N}} \left(\sum_{i \in \mathbb{N}} a_i \mu_i\right)(A_j)\\
+            &= \sum_{j \in \mathbb{N}} \mu(A_j)
+        \end{align*}
+    \end{itemize}
+\end{proof}
+
 \begin{definition}[Negligible set]
     Let $(X, \mathcal{A}, \mu)$ be a measure space. For all $A \in \mathcal{A}$, we say that $A$ is \textit{negligible} when $\mu(A) = 0$. For instance, the empty set is always negligible.
-\end{definition}
-
-\begin{definition}[Dirac measure]
-    Let $(X, \mathcal{A})$ be a measurable space, and let $x \in X$. The \textit{Dirac measure at $x$} is defined as:
-        $$\delta_x : \mathcal{A} \rightarrow \mathbb{R}_+ \cup \{\infty\}$$
-        $$A \mapsto \begin{cases} 1 & \tif x \in A\\ 0 & \tif x \notin A\end{cases}$$
-    Let's prove that the Dirac measure is indeed a measure. Firstly, as $x \notin \varnothing$, then $\delta_x(\varnothing) = 0$. Secondly, let $(A_i)_{i \in \mathbb{N}}$ be a countable family of disjoint measurable sets. We have two cases:
-    \begin{itemize}
-        \item If $x \in \bigcup_{i \in \mathbb{N}} A_i$, then, as the $A_i$ are disjoint, there exists a unique $j \in \mathbb{N}$ such that $x \in A_j$, and for all other $i \in \mathbb{N} \setminus \{j\}$, $x \notin A_i$. Therefore:
-            $$\sum_{i \in \mathbb{N}} \delta_x(A_i) = \delta_x(A_j) + \sum_{i \in \mathbb{N} \setminus \{j\}} \delta_x(A_i) = 1 + \sum_{i \in \mathbb{N}} 0 = 1 = \delta_x(\bigcup_{i \in \mathbb{N}} A_i)$$
-        \item If $x \notin \bigcup_{i \in \mathbb{N}} A_i$, then for all $i \in \mathbb{N}$, $x \notin A_i$, and therefore:
-        $$\sum_{i \in \mathbb{N}} \delta_x(A_i) = \sum_{i \in \mathbb{N}} 0 = 0 = \delta_x(\bigcup_{i \in \mathbb{N}} A_i)$$
-    \end{itemize}
 \end{definition}
 
 \begin{definition}[Total mass]
@@ -155,6 +162,32 @@
 \begin{remark}
     Finiteness implies $\sigma$-finiteness, but $\sigma$-finiteness doesn't necessarily imply finiteness.
 \end{remark}
+
+\begin{definition}[Dirac measure]
+    Let $(X, \mathcal{A})$ be a measurable space, and let $x \in X$. The \textit{Dirac measure at $x$} is defined as:
+        $$\delta_x : \mathcal{A} \rightarrow \mathbb{R}_+ \cup \{\infty\}$$
+        $$A \mapsto \begin{cases} 1 & \tif x \in A\\ 0 & \tif x \notin A\end{cases}$$
+    Let's prove that the Dirac measure is indeed a measure. Firstly, as $x \notin \varnothing$, then $\delta_x(\varnothing) = 0$. Secondly, let $(A_i)_{i \in \mathbb{N}}$ be a countable family of disjoint measurable sets. We have two cases:
+    \begin{itemize}
+        \item If $x \in \bigcup_{i \in \mathbb{N}} A_i$, then, as the $A_i$ are disjoint, there exists a unique $j \in \mathbb{N}$ such that $x \in A_j$, and for all other $i \in \mathbb{N} \setminus \{j\}$, $x \notin A_i$. Therefore:
+            $$\sum_{i \in \mathbb{N}} \delta_x(A_i) = \delta_x(A_j) + \sum_{i \in \mathbb{N} \setminus \{j\}} \delta_x(A_i) = 1 + \sum_{i \in \mathbb{N}} 0 = 1 = \delta_x(\bigcup_{i \in \mathbb{N}} A_i)$$
+        \item If $x \notin \bigcup_{i \in \mathbb{N}} A_i$, then for all $i \in \mathbb{N}$, $x \notin A_i$, and therefore:
+        $$\sum_{i \in \mathbb{N}} \delta_x(A_i) = \sum_{i \in \mathbb{N}} 0 = 0 = \delta_x(\bigcup_{i \in \mathbb{N}} A_i)$$
+    \end{itemize}
+    The Dirac measure is also finite and $\sigma-finite$.
+\end{definition}
+
+\begin{definition}[Discrete measures]
+    Let $(X, \mathcal{A})$ be a measurable space. A \textit{discrete measure} is a positive linear combination of Dirac measures. That is, let $(a_i)_{i \in \mathbb{N}}$ be a countable family of elements of $\mathbb{R}_+$, and let $(x_i)_{i \in \mathbb{N}}$ be a countable family of elements of $X$. Then $\sum_{i \in \mathbb{N}} a_i \delta_{x_i}$ is a discrete measure, where $\delta_{x_i}$ represents the Dirac measure at $x_i$. Note that discrete measures aren't necessarily finite or $\sigma$-finite.
+\end{definition}
+
+\begin{definition}[Counting measure]
+    Let $(X, \mathcal{A})$ be a measurable space. The counting measure is defined as:
+        $$\chi(A) = \begin{cases} Card(A) & \tif A \text{ is countable}\\ \infty & \tif A \text{ is uncountable}\end{cases}$$
+    If $X$ is countable, then $\chi$ is a discrete measure since for all $A \in \mathcal{A}$, we have $\chi(A) = Card(A) = \sum_{x \in A} 1 = \sum_{x \in A} \delta_x(A) = \left(\sum_{x \in A} \delta_x\right)(A)$.
+\end{definition}
+
+
 
 
 \end{document}
