@@ -74,9 +74,9 @@
 
 \begin{proof}~
     \begin{itemize}
-        \item As we have $X \in \mathcal{A}_i$ for all $i \in I$, then we have $X \in \bigcup_{i \in I} \mathcal{A}_i$.
-        \item If $A \in \bigcup_{i \in I} \mathcal{A}_i$, then $A \in \mathcal{A}_i$ for all $i \in I$, and therefore $A^c \in \mathcal{A}_i$ for all $i \in I$, meaning that $A^c \in \bigcup_{i \in I} \mathcal{A}_i$.
-        \item Let $(A_j)_{j \in J}$ be a countable family over $\bigcup_{i \in I} \mathcal{A}_i$. This family is also over $\mathcal{A}_i$ for all $i \in I$. Therefore, $\bigcup_{j \in J} A_j \in \mathcal{A}_i$ for all $i \in I$, meaning that $\bigcup_{j \in J} A_j \in \bigcup_{i \in I} \mathcal{A}_i$.
+        \item As we have $X \in \mathcal{A}_i$ for all $i \in I$, then we have $X \in \bigcap_{i \in I} \mathcal{A}_i$.
+        \item If $A \in \bigcap_{i \in I} \mathcal{A}_i$, then $A \in \mathcal{A}_i$ for all $i \in I$, and therefore $A^c \in \mathcal{A}_i$ for all $i \in I$, meaning that $A^c \in \bigcap_{i \in I} \mathcal{A}_i$.
+        \item Let $(A_j)_{j \in J}$ be a countable family over $\bigcap_{i \in I} \mathcal{A}_i$. This family is also over $\mathcal{A}_i$ for all $i \in I$. Therefore, $\bigcup_{j \in J} A_j \in \mathcal{A}_i$ for all $i \in I$, meaning that $\bigcup_{j \in J} A_j \in \bigcap_{i \in I} \mathcal{A}_i$.
     \end{itemize}
 \end{proof}
 
@@ -100,7 +100,7 @@
 \end{theorem}
 
 \begin{proof}
-    Firstly, $\bigcap_{\mathcal{A} \in Z} \mathcal{A}$ is an intersection of $\sigma$-algebras of $X$, and is therefore a $\sigma$-algebra of $X$. Secondly, as $Y \subseteq \mathcal{A}$ for all $\mathcal{A} \in Z$, we have that $Y \subseteq \bigcap_{\mathcal{A} \in Z} \mathcal{A}$. Thirdly, $\bigcap_{\mathcal{A} \in Z} \mathcal{A} \subseteq \mathcal{A}'$ for all $\mathcal{A}' \in Z$. Therefore, $\bigcap_{\mathcal{A} \in Z} \mathcal{A}$ respects all the conditions of the $\sigma$-algebra, meaning that $\sigma(Y) = \bigcap_{\mathcal{A} \in Z} \mathcal{A}$.
+    Firstly, $\bigcap_{\mathcal{A} \in Z} \mathcal{A}$ is an intersection of $\sigma$-algebras of $X$, and is therefore a $\sigma$-algebra of $X$. Secondly, as $Y \subseteq \mathcal{A}$ for all $\mathcal{A} \in Z$, we have that $Y \subseteq \bigcap_{\mathcal{A} \in Z} \mathcal{A}$. Thirdly, $\bigcap_{\mathcal{A} \in Z} \mathcal{A} \subseteq \mathcal{A}'$ for all $\mathcal{A}' \in Z$. Therefore, $\bigcap_{\mathcal{A} \in Z} \mathcal{A}$ respects all the three properties of the definition of $\sigma(Y)$, meaning that $\sigma(Y) = \bigcap_{\mathcal{A} \in Z} \mathcal{A}$.
 \end{proof}
 
 
@@ -118,26 +118,6 @@
 \begin{remark}
     Do not be mistaken between measurable spaces and measure spaces. A measure space is a measurable space with a measure.
 \end{remark}
-
-\begin{theorem}[Positive linear combinations of measures are measures]
-    Let $(X, \mathcal{A})$ be a measurable space, let $(\mu_i)_{i \in \mathbb{N}}$ be a countable family of measures over $(X, \mathcal{A})$, and let $(a_i)_{i \in \mathbb{N}}$ be a countable family of elements of $\mathbb{R}_+$. Then $\mu = \sum_{i \in \mathbb{N}} a_i \mu_i$ is a measure over $(X, \mathcal{A})$.
-\end{theorem}
-
-\begin{proof}~
-    \begin{itemize}
-        \item $\left(\sum_{i \in \mathbb{N}} a_i \mu_i\right)(\varnothing) = \sum_{i \in \mathbb{N}} a_i \mu_i(\varnothing) = \sum_{i \in \mathbb{N}} 0 = 0$
-        \item Let $(A_j)_{j \in \mathbb{N}}$ be a countable family of distinct measurable sets of $\mathcal{A}$. Then we have:
-        \begin{align*}
-            \mu(\bigcup_{j \in \mathbb{N}} A_j) &= \left(\sum_{i \in \mathbb{N}} a_i \mu_i\right)(\bigcup_{j \in \mathbb{N}} A_j)\\
-            &= \sum_{i \in \mathbb{N}} a_i \mu_i(\bigcup_{j \in \mathbb{N}} A_j)\\
-            &= \sum_{i \in \mathbb{N}} a_i \sum_{j \in \mathbb{N}} \mu_i(A_j)\\
-            &= \sum_{i \in \mathbb{N}} \sum_{j \in \mathbb{N}} a_i \mu_i(A_j)\\
-            &= \sum_{j \in \mathbb{N}} \sum_{i \in \mathbb{N}} a_i \mu_i(A_j)\\
-            &= \sum_{j \in \mathbb{N}} \left(\sum_{i \in \mathbb{N}} a_i \mu_i\right)(A_j)\\
-            &= \sum_{j \in \mathbb{N}} \mu(A_j)
-        \end{align*}
-    \end{itemize}
-\end{proof}
 
 \begin{definition}[Negligible set]
     Let $(X, \mathcal{A}, \mu)$ be a measure space. For all $A \in \mathcal{A}$, we say that $A$ is \textit{negligible} when $\mu(A) = 0$. For instance, the empty set is always negligible.
@@ -174,11 +154,31 @@
         \item If $x \notin \bigcup_{i \in \mathbb{N}} A_i$, then for all $i \in \mathbb{N}$, $x \notin A_i$, and therefore:
         $$\sum_{i \in \mathbb{N}} \delta_x(A_i) = \sum_{i \in \mathbb{N}} 0 = 0 = \delta_x(\bigcup_{i \in \mathbb{N}} A_i)$$
     \end{itemize}
-    The Dirac measure is also finite and $\sigma-finite$.
+    The Dirac measure is also finite and $\sigma$-finite.
 \end{definition}
 
+\begin{theorem}[Positive linear combinations of measures are measures] \label{thm:pos_lin_comb_measures}
+    Let $(X, \mathcal{A})$ be a measurable space, let $(\mu_i)_{i \in \mathbb{N}}$ be a countable family of measures over $(X, \mathcal{A})$, and let $(a_i)_{i \in \mathbb{N}}$ be a countable family of elements of $\mathbb{R}_+$. Then $\mu = \sum_{i \in \mathbb{N}} a_i \mu_i$ is a measure over $(X, \mathcal{A})$.
+\end{theorem}
+
+\begin{proof}~
+    \begin{itemize}
+        \item $\left(\sum_{i \in \mathbb{N}} a_i \mu_i\right)(\varnothing) = \sum_{i \in \mathbb{N}} a_i \mu_i(\varnothing) = \sum_{i \in \mathbb{N}} 0 = 0$
+        \item Let $(A_j)_{j \in \mathbb{N}}$ be a countable family of distinct measurable sets of $\mathcal{A}$. Then we have:
+        \begin{align*}
+            \mu(\bigcup_{j \in \mathbb{N}} A_j) &= \left(\sum_{i \in \mathbb{N}} a_i \mu_i\right)(\bigcup_{j \in \mathbb{N}} A_j)\\
+            &= \sum_{i \in \mathbb{N}} a_i \mu_i(\bigcup_{j \in \mathbb{N}} A_j)\\
+            &= \sum_{i \in \mathbb{N}} a_i \sum_{j \in \mathbb{N}} \mu_i(A_j)\\
+            &= \sum_{i \in \mathbb{N}} \sum_{j \in \mathbb{N}} a_i \mu_i(A_j)\\
+            &= \sum_{j \in \mathbb{N}} \sum_{i \in \mathbb{N}} a_i \mu_i(A_j)\\
+            &= \sum_{j \in \mathbb{N}} \left(\sum_{i \in \mathbb{N}} a_i \mu_i\right)(A_j)\\
+            &= \sum_{j \in \mathbb{N}} \mu(A_j)
+        \end{align*}
+    \end{itemize}
+\end{proof}
+
 \begin{definition}[Discrete measures]
-    Let $(X, \mathcal{A})$ be a measurable space. A \textit{discrete measure} is a positive linear combination of Dirac measures. That is, let $(a_i)_{i \in \mathbb{N}}$ be a countable family of elements of $\mathbb{R}_+$, and let $(x_i)_{i \in \mathbb{N}}$ be a countable family of elements of $X$. Then $\sum_{i \in \mathbb{N}} a_i \delta_{x_i}$ is a discrete measure, where $\delta_{x_i}$ represents the Dirac measure at $x_i$. Note that discrete measures aren't necessarily finite or $\sigma$-finite.
+    Let $(X, \mathcal{A})$ be a measurable space. A \textit{discrete measure} is a positive linear combination of Dirac measures (which from theorem (\ref{{thm:pos_lin_comb_measures}}) is a measure). That is, let $(a_i)_{i \in \mathbb{N}}$ be a countable family of elements of $\mathbb{R}_+$, and let $(x_i)_{i \in \mathbb{N}}$ be a countable family of elements of $X$. Then $\sum_{i \in \mathbb{N}} a_i \delta_{x_i}$ is a discrete measure, where $\delta_{x_i}$ represents the Dirac measure at $x_i$.
 \end{definition}
 
 \begin{definition}[Counting measure]
@@ -186,6 +186,15 @@
         $$\chi(A) = \begin{cases} Card(A) & \tif A \text{ is countable}\\ \infty & \tif A \text{ is uncountable}\end{cases}$$
     If $X$ is countable, then $\chi$ is a discrete measure since for all $A \in \mathcal{A}$, we have $\chi(A) = Card(A) = \sum_{x \in A} 1 = \sum_{x \in A} \delta_x(A) = \left(\sum_{x \in A} \delta_x\right)(A)$.
 \end{definition}
+
+\begin{theorem}
+    Let $(X, \mathcal{A}, \mu)$ be a measure space. Then the following 
+    %Monotonicity
+    %Subadditivity
+    %The mass of the union of an increasing sequence is the limit of its mass
+    %The mass of the intersection of a decreasing sequence is the limit of its mass
+    %https://proofwiki.org/wiki/Measure_of_Limit_of_Increasing_Sequence_of_Measurable_Sets
+\end{theorem}
 
 
 
