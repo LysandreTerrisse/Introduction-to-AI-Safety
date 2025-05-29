@@ -57,57 +57,13 @@
 		For any set $E$, we call $\mathcal{P}(E)$ the discrete topology of $E$. It is the biggest topology of $E$ by inclusion, that is, this topology includes every other topology of $E$.
 \end{example}
 
-\begin{notation}[Complementary]
-		Let $(E, T)$ be a topological space, and let $X \subseteq E$. By complementary of $X$, we mean $E \setminus X$, and we note it $X^c$.
-\end{notation}
-
 \begin{definition}[Closed set]
-		Let $(E, T)$ be a topological space. A subset $C \subseteq E$ is said to be closed when its complementary is open. We call $\closed = \{C \subseteq E \mid C^c \in T\}$ the set of closed sets.
+		Let $(E, T)$ be a topological space. A subset $C \subseteq E$ is said to be closed when its complementary is open. We call $\closed = \{C \subseteq E \mid C^c \in T\}$ the set of closed sets. Alternatively, we could say that a subset $C \subseteq E$ is closed when it is the complementary of an open (in that case, it is the complementary of the open $C^c$). As such, we have $\closed = \{O^c \mid O \in T\}$.
 \end{definition}
 
-\begin{theorem}[A set included in $E$ is open iff its complementary is closed] \label{thm:open-iff-comp-is-closed}
-		Let $(E, T)$ be a topological space, and let $O \subseteq E$. Then we have:
-				$$O \in T \iff O^c \in \closed$$
-		Therefore, $T = \{O \subseteq E \mid O^c \in \closed\}$
-\end{theorem}
-
-\begin{proof}
-		Let's prove the implication and then the reciprocal:
-		\begin{itemize}
-				\item Suppose $O \in T$. As the complementary of $O^c$ is $(O^c)^c = O$, which is an open, then by the definition of closed set, $O^c$ is closed.
-				\item Suppose $O^c \in \closed$. Then, by definition of closed set, its complementary $(O^c)^c = O$ must be open.
-		\end{itemize}
-\end{proof}
-
-\begin{corollary}[A set included in $E$ is open iff it is the complementary of a closed]
-		Let $(E, T)$ be a topological space, and let $C \subseteq E$. Then we have:
-				$$C^c \in T \iff C \in \closed$$
-		Therefore, $T = \{C^c \mid C \in \closed\}$
-\end{corollary}
-
-\begin{proof}
-		It is a special case of theorem (\ref{thm:open-iff-comp-is-closed}) with $O = C^c$.
-\end{proof}
-
-\begin{corollary}[A set included in $E$ is closed iff its complementary is open] \label{cor:closed-iff-comp-is-open}
-		Let $(E, T)$ be a topological space, and let $C \subseteq E$. Then we have:
-				$$C \in \closed \iff C^c \in T$$
-		Therefore, $\closed = \{C \subseteq E \mid C^c \in T\}$
-\end{corollary}
-
-\begin{proof}
-		This is the definition of closed set.% This theorem is here just for the sake of completeness.
-\end{proof}
-
-\begin{corollary}[A set included in $E$ is closed iff it is the complementary of an open]
-		Let $(E, T)$ be a topological space, and let $O \subseteq E$. Then we have:
-				$$O^c \in \closed \iff O \in T$$
-		Therefore, $\closed = \{O^c \mid O \in T\}$
-\end{corollary}
-
-\begin{proof}
-		It is a special case of corollary (\ref{cor:closed-iff-comp-is-open}) with $C = O^c$.
-\end{proof}
+\begin{remark}
+	Just as closed sets are sets whose complementary is open, open sets are sets whose complementary is closed, and therefore $T = \{O \subseteq E \mid O^c \in \closed\}$. Similarly, just as closed sets are the complementaries of open sets, open sets are the complementaries of closed sets, and therefore $T = \{C^c \mid C \in \closed\}$.
+\end{remark}
 
 \begin{definition}[Clopen sets]
 		Let $(E, T)$ be a topological space. We say that $X \subseteq E$ is clopen when it is both open and closed.
@@ -118,7 +74,7 @@
 \end{theorem}
 
 \begin{proof}
-		From the definition of topological space, we have that $\varnothing$ and $E$ are open. But, as they are both the complementary of each other (that is, $\varnothing = E \setminus E$ and $E = E \setminus O$), then they are the complementary of an open. They therefore are also closed.
+		From the definition of topological space, we have that $\varnothing$ and $E$ are open. But, as they are both the complementary of each other, then they are the complementary of an open. They therefore are also closed.
 \end{proof}
 
 \begin{theorem}[Intersection of closed sets is closed]
@@ -150,7 +106,7 @@
 \end{definition}
 
 \begin{definition}[Neighbourhood of a point]
-		Let $(E, T)$ be a topological space, and let $x \in E$. $N \subseteq X$ is said to be a neighbourhood of $x$ when it is a neighbourhood of the singleton $\{x\}$. Equivalently, it is when there exist an open $O \in T$ such that $x \in O$ and $O \subseteq N$. We also use the notation $\mathcal{N}(x)$ for the neighbourhood of $x$.
+		Let $(E, T)$ be a topological space, and let $x \in E$. $N \subseteq X$ is said to be a neighbourhood of $x$ when it is a neighbourhood of the singleton $\{x\}$. Equivalently, it is when there exists an open $O \in T$ such that $x \in O$ and $O \subseteq N$. We also use the notation $\mathcal{N}(x)$ for the neighbourhood of $x$.
 \end{definition}
 
 \begin{theorem}[All sets have a clopen neighbourhood] \label{thm:neighbourhood-existence}
@@ -161,24 +117,26 @@
 		This is trivial as $E$ is a clopen and is a neighbourhood of $X$ (since $X \subseteq E \subseteq E$ holds).
 \end{proof}
 
-\begin{theorem}[Opens are neighbourhoods for all their subsets] \label{thm:open-eq-neighbourhood}
-		Let $(E, T)$ be a topological space, and let $X \subseteq E$. Then $X$ is open if and only if it is a neighbourhood of all its subsets.
-\end{theorem}
-
-\begin{proof}
-		Suppose that $X$ is open, and let $X' \subseteq X$. We want to prove that $X$ is a neighbourhood of $X'$. As $X' \subseteq X \subseteq X$, and that $X$ is open, then $X$ indeed is a neighbourhood of $X'$.
-
-		Now, suppose instead that $X$ is a neighbourhood for all subset $X' \subseteq X$. Then for all $X' \subseteq X$, there exists an open $O_{X'} \in T$ such that $X' \subseteq O \subseteq X$. And the union $\bigcup_{X' \subseteq X} O_{X'}$ of all these open sets is open. Now, let's prove that $X = \bigcup_{X' \subseteq X} O_{X'}$. Firstly, as $\bigcup_{X' \subseteq X} O_{X'}$ is a union of all subsets of $X$, (including $X$ itself), then $X \subseteq \bigcup_{X' \subseteq X} O_{X'}$. Furthermore, as $\bigcup_{X' \subseteq X} O_{X'}$ is a union of sets which are all included in $X$, and that inclusion is stable over union, then $\bigcup_{X' \subseteq X} O_{X'} \subseteq X$, and therefore $X = \bigcup_{x \in X} O_x$, and therefore $X$ is open.
-\end{proof}
-
-\begin{theorem}[A set is open iff it is a neighbourhood of itself]
+\begin{theorem}[A set is open iff it is a neighbourhood of itself] \label{thm:open-eq-own-neighbourhood}
 		Let $(E, T)$ be a topological space, and let $X \subseteq E$. $X$ is open if and only if it is a neighbourhood of itself.
 \end{theorem}
 
-\begin{proof}
-		Suppose that $X$ is open. As $X \subseteq X \subseteq X$ and that $X$ is open, then $X$ is a neighbourhood of itself.
+\begin{proof}~
+	\begin{itemize}
+		\item Suppose that $X$ is open. As $X \subseteq X \subseteq X$ and that $X$ is open, then $X$ is a neighbourhood of itself.
+		\item Suppose that $X$ is a neighbourhood of itself. Then, there exists an open $O \in T$ such that $X \subseteq O \subseteq X$, and therefore $X = O$, proving that $X$ is open.
+	\end{itemize}
+\end{proof}
 
-		Now, suppose that $X$ is a neighbourhood of itself. Then, there exists an open $O \in T$ such that $X \subseteq O \subseteq X$, and therefore $X = O \in T$, proving that $X$ is open.
+\begin{theorem}[A set is open iff it is a neighbourhood of all its subsets] \label{thm:open-eq-neighbourhood}
+		Let $(E, T)$ be a topological space, and let $X \subseteq E$. Then $X$ is open if and only if it is a neighbourhood of all its subsets.
+\end{theorem}
+
+\begin{proof}~
+	\begin{itemize}
+		\item Suppose that $X$ is open, and let $X' \subseteq X$. As $X' \subseteq X \subseteq X$, and that $X$ is open, then $X$ indeed is a neighbourhood of $X'$.
+		\item Suppose that $X$ is a neighbourhood of all of its subsets. Then it is also a neighbourhood of itself, and from theorem (\ref{thm:open-eq-own-neighbourhood}), $X$ is open.
+	\end{itemize}
 \end{proof}
 
 \subsection{Structures formed by neighbourhoods}
@@ -229,7 +187,7 @@ In this section, $(E, T)$ will correspond to a topological space, and $X \subset
 \begin{proof}
 		Let's prove $\inter{X} = \overline{X^c}^c$:
 		\begin{itemize}
-				\item Let $x \in \inter{X}$. $X$ therefore contains a neighbourhood of $X$. Since this neighbourhood is contained in $X$, it cannot intersect $X^c$. Since $x$'s neighbourhoods therefore do not all intersect $X^c$, then $x \notin \overline{\X^c}$, and therefore $x \in \overline{X^c}^c$.
+				\item Let $x \in \inter{X}$. $X$ therefore contains a neighbourhood of $X$. Since this neighbourhood is contained in $X$, it cannot intersect $X^c$. Since $x$'s neighbourhoods therefore do not all intersect $X^c$, then $x \notin \overline{X^c}$, and therefore $x \in \overline{X^c}^c$.
 				\item Let $x \in \overline{X^c}^c$. We therefore have that $x \notin \overline{X^c}$, which means that there is a neighbourhood of $x$ which doesn't intersect with $X^c$. This neighbourhood must therefore be contained in $X$, and we therefore have $x \in \inter{X}$
 		\end{itemize}
 		Let's now prove that $\overline{X} = (\inter{(X^c)})^c$:
