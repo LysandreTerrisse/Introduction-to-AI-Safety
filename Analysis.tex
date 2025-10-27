@@ -21,6 +21,12 @@
 \allowdisplaybreaks
 
 \newcommand{\inter}[1]{{{#1}^\circ}}
+\newcommand{\adher}[1]{{\overline{#1}}}
+\newcommand{\bound}[1]{{\partial #1}}
+\newcommand{\exter}[1]{{{#1}^e}}
+\newcommand{\limit}[1]{{{#1}'}}
+\newcommand{\isol}[1]{{{#1}^i}}
+
 \newcommand{\closed}{\mathcal{C}}
 \newcommand{\lr}[1]{\left(#1\right)}
 \newcommand{\tand}{\text{ and }}
@@ -33,12 +39,10 @@
 
 \section{Topological space}
 
-\subsection{Opens and closed sets}
-
 %https://www.math.ucdavis.edu/~hunter/book/ch4.pdf
 %https://fr.wikipedia.org/wiki/Espace_topologique
 %http://math.soimeme.org/~arunram/Preprints/181212Cntfcns.pdf
-\begin{definition}[Topology]
+\begin{definition}[Topological space and topology]
 		$(E, T)$ is a topological space when $E$ is a set and $T$ is a \textit{topology} over $E$. That is, $T$ is a set of subsets of $E$, called open sets, such that:
 		\begin{itemize}
 				\item $\varnothing$ and $E$ are open: $\varnothing, E \in T$
@@ -97,7 +101,7 @@
 		which is a finite intersection of open, and is therefore open. Therefore, $\bigcup_{C \in S} C$ is closed.
 \end{proof}
 
-\subsection{Neighbourhood}
+\section{Neighbourhood}
 
 \begin{definition}[Neighbourhood of a set]
 		Let $(E, T)$ be a topological space, and let $X \subseteq E$. A neighbourhood of $X$ is a subset $N$ that includes an open set which includes $X$. That is, $N$ is a neighbourhood of $X$ when:
@@ -106,7 +110,7 @@
 \end{definition}
 
 \begin{definition}[Neighbourhood of a point]
-		Let $(E, T)$ be a topological space, and let $x \in E$. $N \subseteq X$ is said to be a neighbourhood of $x$ when it is a neighbourhood of the singleton $\{x\}$. Equivalently, it is when there exists an open $O \in T$ such that $x \in O$ and $O \subseteq N$. We also use the notation $\mathcal{N}(x)$ for the neighbourhood of $x$.
+		Let $(E, T)$ be a topological space, and let $x \in E$. $N \subseteq E$ is said to be a neighbourhood of $x$ when it is a neighbourhood of the singleton $\{x\}$. Equivalently, it is when there exists an open $O \in T$ such that $x \in O$ and $O \subseteq N$. We also use the notation $\mathcal{N}(x)$ for the neighbourhood of $x$.
 \end{definition}
 
 \begin{theorem}[All sets have a clopen neighbourhood] \label{thm:neighbourhood-existence}
@@ -139,203 +143,229 @@
 	\end{itemize}
 \end{proof}
 
-\subsection{Structures formed by neighbourhoods}
+\begin{theorem}[A set is open iff it is a neighbourhood of all its points] \label{thm:open-eq-point}
+		Let $(E, T)$ be a topological space, and let $X \subseteq E$. Then $X$ is open if and only if it is a neighbourhood of all its points.
+\end{theorem}
 
-In this section, $(E, T)$ will correspond to a topological space, and $X \subseteq E$ will correspond to a subset of $E$.
+\begin{proof}~
+		\begin{itemize}
+				\item Suppose that $X$ is open, and let $x \in X$. Then, from theorem (\ref{thm:open-eq-neighbourhood}), it is a neighbourhood of $\{x\}$ and therefore of $x$.
+				\item Suppose that $X$ is a neighbourhood of all its points. Then, for each $x \in X$, there exists $O_x$ such that $x \in O_x$ and $O_x \subseteq X$. As for all $x \in X$, $O_x \subseteq X$, then the union $\bigcup_{x \in X} O_x$ also belongs to $X$. Furthermore, as for all $x \in X$, $x \in O_x$, then $x \in \bigcup_{x \in X} O_X$, meaning that $X \subseteq \bigcup_{x \in X} O_X$. Thus, $X = \bigcup_{x \in X} O_x$, which is open because it is an union of opens.
+		\end{itemize}
+\end{proof}
 
-\begin{definition}[Adhrerent point / Closure]
+\begin{theorem}[An open containing a point is a neighbourhood of it] \label{thm:open-contain-point}
+		Let $(E, T)$ be a topological space, let $O \in T$, and let $x \in O$. Then, $O \in \mathcal{N}(x)$.
+\end{theorem}
+
+\begin{proof}
+		As $x \in O \subseteq O$, and that $O \in T$, then $O \in \mathcal{N}(x)$.
+\end{proof}
+
+
+
+\section{Structures formed by neighbourhoods}
+
+In the next sections, $(E, T)$ will correspond to a topological space, and $X$ will correspond to a subset of $E$.
+
+\begin{definition}[Adhrerent point and closure]
 		$x \in E$ is said to be an adherent point of $X$ when every neighbourhood of $x$ intersect $X$:
 				$$\forall N \in \mathcal{N}(x), X \cap N \neq \varnothing$$
-		The closure $\overline{X}$ of $X$ is the set of all adhrent points of $X$.
+		The closure $\adher{X}$ of $X$ is the set of all adherent points of $X$.
 \end{definition}
 
-\begin{definition}[Interior point / Interior]
+\begin{definition}[Interior point and interior]
 		$x \in E$ is said to be an interior point of $X$ when $X$ contains a neighbourhood of $x$:
 				$$\exists N \in \mathcal{N}(X), N \subseteq X$$
 		The interior $\inter{X}$ of $X$ is the set of all interior points of $X$.
 \end{definition}
 
-\begin{definition}[Boundary point / Boundary]
+\begin{definition}[Boundary point and boundary]
 		$x \in E$ is said to be a boundary point of $X$ when every neighbourhood of $x$ contains at least one point in $X$ and one point not in $X$:
 				$$\forall N \in \mathcal{N}(X), X \cap N \neq \varnothing \tand X^c \cap N \neq \varnothing$$
-		The boundary $\partial X$ of $X$ is the set of all boundary points of $X$.
+		The boundary $\bound{X}$ of $X$ is the set of all boundary points of $X$.
 \end{definition}
 
-\begin{definition}[Exterior point / Exterior]
+\begin{definition}[Exterior point and exterior]
 		$x \in E$ is said to be an exterior point of $X$ when $x$ has a neighbourhood which doesn't intersect with $X$:
 				$$\exists N \in \mathcal{N}(x), X \cap N = \varnothing$$
+		The exterior $\exter{X}$ of $X$ is the set of all exterior points of $X$.
 \end{definition}
 
-\begin{definition}[Limit point / Derived set]
+\begin{definition}[Limit point and derived set]
 		$x \in E$ is said to be a limit point of $X$ when every neighbourhood of $x$, after removing $x$ from it, intersect $X$:
 				$$\forall N \in \mathcal{N}(X), X \cap (N \setminus \{x\}) \neq \varnothing$$
-		The derived set $X'$ of $X$ is the set of all limit points of $X$.
+		The derived set $\limit{X}$ of $X$ is the set of all limit points of $X$.
 \end{definition}
 
-\begin{definition}[Isolated point / Set of isolated points]
+\begin{definition}[Isolated point and set of isolated points]
 		$x \in E$ is said to be an isolated point of $X$ when $x$ has a neighbourhood whose intersection with $X$ is the singleton $\{x\}$:
 				$$\exists N \in \mathcal{N}(X), X \cap N = \{x\}$$
-		We note $X^i$ for the set of all isolated points of $X$.
+		We note $\isol{X}$ for the set of all isolated points of $X$.
 \end{definition}
+
+As can be expected, these different structures have many common properties, some of which are resumed in the following table, where the intersection between the $i$-th row and $j$-th column tells how to define the $i$-th structure from the $j$-th structure when possible. Although each property can be easily proven, we will not discuss these proofs here, except for the duality between closure and interior.
+
+\begin{center}
+		\begin{tabular}{|c|c|c|c|c|c|c|}
+				\hline
+						    & $\adher{X}$                               & $\inter{X}$                         & $\bound{X}$                                                                  & $\exter{X}$                         & $\limit{X}$                                      & $\isol{X}$\\
+				\hline
+				$\adher{X}$ & $\adher{X}$                               & $\inter{X^c}^c$                     & $X \cup \bound{X}$                                                           & $\exter{X}^c$                       & $X \cup \limit{X}$                               &           \\
+				$\inter{X}$ & $\adher{X^c}^c$                           & $\inter{X}$                         & $X \setminus \bound{X}$                                                      & $\exter{X^c}$                       & $X \setminus \limit{X^c}$                        &           \\
+				$\bound{X}$ & $\adher{X} \cap \adher{X^c}$              & $\inter{X^c}^c \cap \inter{X}^c$    & $\bound{X}$                                                                  & $\exter{X}^c \cap \exter{X^c}^c$    & $(X \cup \limit{X}) \cap (X^c \cup \limit{X^c})$ &           \\
+				$\exter{X}$ & $\adher{X}^c$                             & $\inter{X^c}$                       & $(X \cup \bound{X})^c$                                                       & $\exter{X}$                         & $(X \cup \limit{X})^c$                           &           \\
+				$\limit{X}$ & $\adher{\adher{X^c}^c}$                   & $\inter{\inter{X}^c}^c$             & $(X \setminus \bound{X}) \cup \bound{(X \setminus \bound{X})}$               & $\exter{\exter{X^c}}^c$             & $\limit{X}$                                      &           \\
+				$\isol{X}$  & $X \setminus \overline{\overline{X^c}^c}$ & $X \setminus \inter{\inter{X}^c}^c$ & $X \setminus ((X \setminus \bound{X}) \cup \bound{(X \setminus \bound{X}))}$ & $X \setminus \exter{\exter{X^c}}^c$ & $X \setminus \limit{X}$                          & $\isol{X}$\\
+				\hline
+		\end{tabular}
+\end{center}
 
 \begin{theorem}[Closure and interior are dual]
 		We have:
-				$$\inter{X} = \overline{X^c}^c$$
-				$$\overline{X} = (\inter{(X^c)})^c$$
+				$$\adher{X} = \inter{X^c}^c$$
+				$$\inter{X} = \adher{X^c}^c$$	
 \end{theorem}
 
 \begin{proof}
-		Let's prove $\inter{X} = \overline{X^c}^c$:
+		Let's prove $\adher{X} = \inter{X^c}^c$:
 		\begin{itemize}
-				\item Let $x \in \inter{X}$. $X$ therefore contains a neighbourhood of $X$. Since this neighbourhood is contained in $X$, it cannot intersect $X^c$. Since $x$'s neighbourhoods therefore do not all intersect $X^c$, then $x \notin \overline{X^c}$, and therefore $x \in \overline{X^c}^c$.
-				\item Let $x \in \overline{X^c}^c$. We therefore have that $x \notin \overline{X^c}$, which means that there is a neighbourhood of $x$ which doesn't intersect with $X^c$. This neighbourhood must therefore be contained in $X$, and we therefore have $x \in \inter{X}$
+				\item Let $x \in \adher{X}$. All of $x$'s neighbourhood therefore intersect $X$. There therefore is no neighbourhood of $x$ which don't intersect $X$. There therefore is no neighbourhood of $x$ which are contained in $X^c$. Therefore, $x \notin \inter{X^c}$, which means that $x \in \inter{X^c}^c$ and thus $\adher{X} \subseteq \inter{X^c}^c$.
+				\item Let $x \in \inter{X^c}^c$. As $x \notin \inter{X^c}$, then there is no neighbourhood of $x$ included in $X^c$, and therefore every neighbourhood of $x$ must intersect $X$, implying that $x \in \adher{X}$ and thus $\inter{X^c}^c \subseteq \adher{X}$.
 		\end{itemize}
-		Let's now prove that $\overline{X} = (\inter{(X^c)})^c$:
+		Let's now prove $\inter{X} = \adher{X^c}^c$:
 		\begin{itemize}
-				\item Let $x \in \overline{X}$. All of $x$'s neighbourhood therefore intersect $X$. There therefore is no neighbourhood of $x$ which don't intersect $X$. There therefore is no neighbourhood of $x$ which are contained in $X^c$. Therefore, $x \notin \inter{(X^c)}$, which means that $x \in (\inter{(X^c)})^c$
-				\item Let $x \in (\inter{(X^c)})^c$. As $x \notin \inter{(X^c)}$, 
+				\item Let $x \in \inter{X}$. $X$ therefore contains a neighbourhood of $X$. Since this neighbourhood is contained in $X$, it cannot intersect $X^c$. Since $x$'s neighbourhoods therefore do not all intersect $X^c$, then $x \notin \adher{X^c}$, and therefore $x \in \adher{X^c}^c$, meaning that $\inter{X} \subseteq \adher{X^c}^c$.
+				\item Let $x \in \adher{X^c}^c$. We therefore have that $x \notin \adher{X^c}$, which means that there is a neighbourhood of $x$ which doesn't intersect with $X^c$. This neighbourhood must therefore be contained in $X$, and we therefore have $x \in \inter{X}$, meaning that $\adher{X^c}^c \subseteq \inter{X}$.
 		\end{itemize}
 \end{proof}
 
-\subsection{Closure and interior}
+\section{Characteristic properties of closure and interior}
 
 \begin{notation}
-		Let $(E, T$ be a topological space, and let $X \subseteq E$. We note $\closed(X) = \{C \in \closed \mid X \subseteq C\}$ the set of all closed sets which include $X$, and we note $T(X) = \{O \in T \mid O \subseteq X\}$ the set of all open sets which are included in $X$.
+		We note $\closed(X) = \{C \in \closed \mid X \subseteq C\}$ the set of all closed sets which include $X$, and we note $T(X) = \{O \in T \mid O \subseteq X\}$ the set of all open sets which are included in $X$.
 \end{notation}
 
-\begin{definition}[Closure] %Adhérence
-		Let $(E, T)$ be a topological space, and let $X \subseteq E$. The closure of $X$, noted $\overline{X}$ is the intersection of all closed sets that include $X$:
-				$$\overline{X} = \bigcap_{C \in \closed(X)} C$$
-\end{definition}
-
-\begin{definition}[Interior]
-		Let $(E, T)$ be a topological space, and let $X \subseteq E$. The interior of $X$, noted $\inter{X}$, is the union of all open sets that are included in $X$:
-				$$\inter{X} = \bigcup_{O \in T(X)} O$$
-\end{definition}
-
-\begin{theorem}[Interior and closure are dual]
-		Let $(E, T)$ be a topological space, and let $X \subseteq E$. Then, we have:
-				$$\inter{X} = \overline{X^c}^c$$
-				$$\overline{X} = (\inter{(X^c)})^c$$
-\end{theorem}
-
-\begin{proof}
+\begin{theorem}[The closure contains the set and the set contains the interior] \label{thm:interior-in-set-in-closure}
 		We have:
-		\begin{align*}
-				\inter{X} &= \bigcup_{O \in T(X)} O\\
-						  &= \lr{\lr{\bigcup_{O \in \{O' \in T \mid O' \subseteq X\}} O}^c}^c\\
-						  &= \lr{\bigcap_{O \in \{O' \in T \mid X^c \subseteq O'^c\}} O^c}^c\\
-						  &= \lr{\bigcap_{C \in \{O^c \mid O \in T, X^c \subseteq O^c\}} C}^c\\
-						  &= \lr{\bigcap_{C \in \closed(X^c)} C}^c \text{ (as $\{O^c \mid O \in T, X^c \subseteq O^c\} = \{C \in \closed \mid X^c \subseteq C\} = \closed(X^c)$)}\\
-						  &= \overline{X^c}^c
-		\end{align*}
-		And therefore $\inter{X} = \overline{X^c}$. When taking $X^c$, it becomes $\inter{(X^c)} = \overline{(X^c)^c}^c = \overline{X}^c$, and therefore $\overline{X} = (\inter{(X^c)})^c$.
+				$$\inter{X} \subseteq X \subseteq \adher{X}$$
+\end{theorem}
+
+\begin{proof}
+		For all $x \in \inter{X}$, $x$ has a neighbourhood $N \in \mathcal{N}(x)$ such that $x \in N \subseteq X$, and thus $\inter{X} \subseteq X$. For all $x \in X$, every neighbourhood of $x$ intersects $X$ at the point $x$, and therefore $x \in \adher{X}$, meaning that $X \subseteq \adher{X}$.
 \end{proof}
 
-\begin{theorem}[Characteristic property of closure] \label{thm:closure-charac}
+\begin{theorem}[Closure is closed and interior is open] \label{thm:closure-closed-interior-open}
+		$\adher{X}$ is closed for all $X \subseteq E$. As closure and interior are dual, this property is equivalent to saying that $\inter{X}$ is open for all $X \subseteq E$.
+\end{theorem}
+
+\begin{proof}
+		Let's prove that $\inter{X}$ is open. Let $x \in \inter{X}$. From the definition of interior, there exists $N \in \mathcal{N}(x)$ such that $N \subseteq X$. As $N \in \mathcal{N}(x)$, there exists an open $O \in T$ such that $x \in O$ and $O \subseteq N$. For all $x' \in O$, we have that one of its neighbourhood (for instance $N$) is contained in $X$. Therefore, every point $x' \in O$ belongs to $\inter{X}$, meaning that $O \subseteq \inter{X}$. Therefore, $x \in O$ and $O \subseteq \inter{X}$, meaning that $\inter{X}$ is a neighbourhood of $x$. Thus, $\inter{X}$ is a neighbourhood of all its points, and from theorem (\ref{thm:open-eq-point}), it is open.
+\end{proof}
+
+\begin{theorem}[Closed sets are their own closure and open sets are their own interior]
+		For all $C \in \closed$, $\adher{C} = C$. This implies that for all $O \in T$, $\inter{O} = O$ since we would have $\inter{O} = \adher{O^c}^c = {O^c}^c = O$.
+\end{theorem}
+
+\begin{proof}~
+		As $C^c$ is open, it is a neighbourhood of all its points (from theorem (\ref{thm:open-contain-point})) which doesn't intersect $C$. Therefore, no point in $C^c$ is an adherent point of $C$. Therefore, all adherent points of $C$ belong to $C$, and therefore $\adher{C} \subseteq C$. Furthermore $C \subseteq \adher{C}$ from theorem (\ref{thm:interior-in-set-in-closure}).
+\end{proof}
+
+\begin{theorem}[Closure as an intersection]
+		The closure $\adher{X}$ of $X$ is equal to the intersection of all closed sets that include $X$:
+				$$\adher{X} = \bigcap_{C \in \closed(X)} C$$
+\end{theorem}
+
+\begin{proof}~
+		\begin{itemize}
+				\item Let $x \in \adher{X}$, and let $C \in \closed(X)$. Since every neighbourhood of $x$ intersect $X$, and that $X \subseteq C$, then every neighbourhood of $x$ intersects $C$, and thus $x \in \adher{C} = C$. Therefore, $\adher{X} \subseteq C$ for all $C \in \mathcal{C}{X}$, and thus $\adher{X} \subseteq \bigcap_{C \in \mathcal{C}(X)} C$
+				\item As $X \subseteq \adher{X}$ and that $\adher{X} \in \closed$, then $\adher{X} \in \closed(X)$, and therefore $\bigcap_{C \in \closed(X)} C \subseteq \adher{X}$. 
+		\end{itemize}
+\end{proof}
+
+\begin{theorem}[Interior as an union]
+		The interior $\inter{X}$ of $X$ is equal to the union of all open sets that are included in $X$:
+				$$\inter{X} = \bigcup_{O \in T(X)} O$$
+\end{theorem}
+
+\begin{proof}~
+		\begin{itemize}
+				\item As $\inter{X} \subseteq X$ and that $\inter{X} \in T$, then $\inter{X} \in T(X)$, and therefore $\inter{X} \subseteq \bigcup_{O \in T(X)} O$.
+				\item Let $x \in \bigcup_{O \in T(X)} O$. Since $O \subseteq X$ for every $O \in T(X)$, then $\bigcup_{O \in T(X)} O \subseteq X$. Furthermore, as $\bigcup_{O \in T(X)} O$ is open, it is a neighbourhood of $x$ which is included in $X$, and therefore $x \in \inter{X}$, meaning that $\bigcup_{O \in T(X)} O \subseteq \inter{X}$. 
+		\end{itemize}
+\end{proof}
+
+
+\begin{theorem}[Closure as the smallest closed set] \label{thm:closure-charac}
 		Let $(E, T)$ be a topological space, and let $X \subseteq E$. $\overline{X}$ is the smallest closed set which includes $X$. That is, $\overline{X}$ is the only set such that:
-		\begin{itemize}
-				\item $\overline{X} \in \closed$
-				\item $X \subseteq \overline{X}$
-				\item $\forall C \in \closed(X), \overline{X} \subseteq C$
-		\end{itemize}
+		\begin{align*}
+				\adher{X} &\in \closed & X &\subseteq \adher{X} & \forall C \in \closed(X), \adher{X} &\subseteq C
+		\end{align*}
 \end{theorem}
 
-\begin{proof}
-		Let's firstly prove that $\overline{X}$ respects these three properties:
+\begin{proof}~
 		\begin{itemize}
-				\item $\overline{X} \in \closed$: As $\overline{X}$ is an intersection of closed sets, then $\overline{X}$ is closed
-				\item $X \subseteq \overline{X}$: As $\overline{X}$ is an intersection of sets which all include $X$, then $X \subseteq \overline{X}$. More formally, for all $C \in \closed(X) = \{C \in \closed \mid X \subseteq C\}$, since $X \subseteq C$, we have $C = X \cup C$. We therefore have:
-						$$\overline{X} = \bigcap_{C \in \closed(X)} C = \bigcap_{C \in \closed(X)} (X \cup C) = X \cup (\bigcap_{C \in \closed(X)} C) = X \cup \overline{X}$$
-				And therefore $X \subseteq X \cup \overline{X} = \overline{X}$
-				\item $\forall C \in \closed(X), \overline{X} \subseteq C$: As $\overline{X}$ is the intersection of all elements of $\closed(X)$, then it must be included in all elements of $\closed(X)$. More formally, let $C' \in \closed(X)$. We need to prove that $\overline{X} \subseteq C$. As $C' \in \closed(X)$, then $\closed(X) = \closed(X) \cup \{C'\}$. Therefore:
-						$$\overline{X} = \bigcap_{C \in \closed(X)} C = \bigcap_{C \in \closed(X) \cup \{C'\}} C = C' \cap \bigcap_{C \in \closed(X)} C = C' \cap \overline{X}$$
-				And therefore $\overline{X} = C' \cap \overline{X} \subseteq C'$
+				\item Let's firstly prove that $\overline{X}$ respects these three properties. The first two properties come from theorem (\ref{thm:closure-closed-interior-open}) and (\ref{thm:interior-in-set-in-closure}) respectively. For the third property, let $C \in \closed(X)$ and $x \in \adher{X}$. Since every neighbourhood of $x$ intersect $X$, and that $X \subseteq C$, then every neighbourhood of $x$ intersects $C$, and thus $x \in \adher{C} = C$, meaning that $\adher{C} \subseteq C$.
+				\item We now need to prove that $\overline{X}$ is the only set respecting these three properties. Let's suppose there is another set $A$ such that $A \in \closed$, $X \subseteq A$, and $\forall C \in \closed(X), A \subseteq C$. Then, as $\bar{X} \in \closed$ (first property of $\bar{X}$) and $X \subseteq \bar{X}$ (second property of $\bar{X}$), then $\bar{X} \in \closed(X)$, and therefore, from the third property of $A$, we have that $A \subseteq \bar{X}$. Similarly, as $A \in \closed$ and $X \subseteq A$, then $A \in \closed(X)$, and therefore $\overline{X} \subseteq A$. Therefore, $A = \overline{X}$, which proves that $\overline{X}$ is the unique set respecting these three properties.
 		\end{itemize}
-		We now need to prove that $\overline{X}$ is the only set respecting these three properties. Let's suppose there is another set $A$ such that:
-		\begin{itemize}
-				\item $A \in \closed$
-				\item $X \subseteq A$
-				\item $\forall C \in \closed(X), A \subseteq C$
-		\end{itemize}
-		As $\overline{X} \in \closed$ (first property of $\overline{X}$) and $X \subseteq \overline{X}$ (second property of $\overline{X}$), then $\overline{X} \in \closed(X)$, and therefore, from the third property of $A$, we have that $A \subseteq \overline{X}$. Similarly, as $A \in \closed$ and $X \subseteq A$, then $A \in \closed(X)$, and therefore $\overline{X} \subseteq A$. Therefore, $A = \overline{X}$, which proves that $\overline{X}$ is the unique set respecting these three properties.
 \end{proof}
 
-\begin{theorem}[Characteristic property of interior] \label{interior-charac}
+\begin{theorem}[Interior as the biggest open set] \label{thm:interior-charac}
 		Let $(E, T)$ be a topological space, and let $X \subseteq E$. $\inter{X}$ is the biggest open set which is included in $X$. That is, $\inter{X}$ is the only set such that:
+		\begin{align*}
+				\inter{X} &\in T & \inter{X} &\subseteq X & \forall O \in T(X), O &\subseteq \inter{X}
+		\end{align*}
+\end{theorem}
+
+\begin{proof}~
 		\begin{itemize}
-				\item $\inter{X} \in T$
-				\item $\inter{X} \subseteq X$
-				\item $\forall O \in T(X), O \subseteq \inter{X}$
-		\end{itemize}
+				\item As in the previous proof, the first two points come from theorem (\ref{thm:closure-closed-interior-open}) and (\ref{thm:interior-in-set-in-closure}) respectively. For the third point, let $O \in T(X)$, and let $x \in O$. As $O$ is open, it is a neighbourhood of $x$ which is included in $X$, and therefore $x \in \inter{X}$, meaning that $O \subseteq \inter{X}$.
+				\item If there were another set $A$ with these properties, then since it would be open and would be included in $X$, it would be in $T(X)$, and therefore we would have $A \subseteq \overline{X}$. And furthermore, as $\overline{X} \in T(X)$, we would also have $\overline{X} \subseteq A$, and therefore these two sets would be the same.
+		\end{itemize} 
+\end{proof}
+
+\begin{theorem}[Characteristic property of adherent point] \label{thm:adherent-carac}
+		The definition of adherent points also works if we consider only the open neighbourhoods instead of every neighbourhood. That is, for all $x \in E$, $x \in \adher{X}$ if and only if:
+				$$\forall O \in \mathcal{N}(x) \cap T, O \cap X \neq \varnothing$$
 \end{theorem}
 
 \begin{proof}
-		As in the previous proof, let's prove that $\inter{X}$ respects these three properties:
+		Let's prove the implication and then the reciprocal.
 		\begin{itemize}
-				\item $\inter{X} \in T$: As $\inter{X}$ is a union of opens, it is open
-				\item $\inter{X} \subseteq X$: As $\inter{X}$ is a union of sets which are all included in $X$, then $\inter{X}$ is also included in $X$
-				\item $\forall O \in T(X), O \subseteq \inter{X}$: As $\inter{X}$ is the union of all elements of $T(X)$, then it must include all elements of $T(X)$.
-		\end{itemize}
-		Furthermore, if there were another set $A$ which were to have these properties, then since it would be open and would be included in $X$, it would be in $T(X)$, and therefore we would have $A \subseteq \overline{X}$. And furthermore, as $\overline{X} \in T(X)$, we would also have $\overline{X} \subseteq A$, and therefore these two sets would be the same.
-\end{proof}
-
-\begin{theorem}[Closed sets are their own closure] \label{thm:closed-eq-closure}
-		Let $(E, T)$ be a topological space, and let $C \in \closed$ be a closed set. Then, $C = \overline{C}$
-\end{theorem}
-
-\begin{proof}
-		From theorem (\ref{thm:closure-charac}), we just need to prove that:
-		\begin{itemize}
-				\item $C \in \closed$ (This is one of our hypothesis)
-				\item $C \subseteq C$ (Trivial)
-				\item $\forall C' \in \closed(C), C \subseteq C'$: This can be rewritten as $\forall C' \in \closed, C \subseteq C' \implies C \subseteq C'$, which is trivial.
+				\item If $x \in \adher{X}$, then as all neighbourhoods of $x$ have a non-null intersection with $X$, then this is also the case for all open neighbourhoods of $X$.
+				\item Let $x \in E$ such that all open neighbourhoods of $x$ intersect $X$. Then, for any neighbourhood $N$ of $x$, it contains an open $O$ containing $x$. This open $O$ is itself an open neighbourhood of $x$, which therefore intersects $X$. As $O \subseteq N$, $N$ must also intersect $X$, which proves that $x \in \adher{X}$.
 		\end{itemize}
 \end{proof}
 
-\begin{theorem}[Open sets are their own interior] \label{thm:open-eq-interior}
-		Let $(E, T)$ be a topological space, and let $O \in T$ be an open. Then $O = \inter{O}$
+\begin{theorem}[Characteristic property of interior point]
+		For all $x \in E$, $x \in \inter{X}$ if and only if $X$ is a neighbourhood of $x$.
 \end{theorem}
 
 \begin{proof}
-		From theorem (\ref{interior-charac}), we just need to prove that:
+		Let's prove the equivalence:
 		\begin{itemize}
-				\item $O \in T$ (This is one of our hypothesis
-				\item $O \subseteq O$ (Trivial)
-				\item $\forall O' \in T(O), O' \subseteq O$: This can be rewritten as $\forall O' \in T, O' \subseteq O \implies O' \subseteq O$, which is trivial.
+				\item If $x \in \inter{X}$, then there exists a neighbourhood $N \in \mathcal{N}(x)$ of $x$ such that $N \subseteq X$. From the definition of neighbourhood, there exists an open $O \in T$ such that $x \in O \subseteq N$, and therefore we have $x \in O \subseteq X$, which means that $X$ is a neighbourhood of $x$.
+				\item If $X$ is a neighbourhood of $x$, then there trivially exists a neighbourhood $N \in \mathcal{N}(x)$ of $x$ such that $N \subseteq X$, as we can take $N = X$, and thus $x \in \inter{X}$.
 		\end{itemize}
 \end{proof}
 
-\begin{corollary}[Closure of closure is closure]
-		Let $(E, T)$ be a topological space, and let $X \subseteq E$. Then, $\overline{\overline{X}} = \overline{X}$ 
-\end{corollary}
+\section{Other properties of closure and interior}
 
-\begin{proof}
-		As $\overline{X}$ is closed, then from corollary (\ref{thm:closed-eq-closure}), $\overline{X} = \overline{\overline{X}}$.
-\end{proof}
-
-\begin{corollary}[Interior of interior is interior]
-		Let $(E, T)$ be a topological space, and let $X \subseteq E$. Then, $\inter{(\inter{X})} = \inter{X}$
-\end{corollary}
-
-\begin{proof}
-		As $\inter{X}$ is open, then from corollary (\ref{thm:open-eq-interior}), $\inter{X} = \inter{(\inter{X})}$.
-\end{proof}
-
-\begin{theorem}[Union of closures is closure of the union]
-		Let $(X, T)$ be a topological space, and let $X, Y \subseteq E$. Then, $\overline{X} \cup \overline{Y} = \overline{X \cup Y}$
+\begin{theorem}[Finite union of closures is the closure of the union]
+		Let $X, Y \subseteq E$. Then, we have:
+				$$\overline{X} \cup \overline{Y} = \overline{X \cup Y}$$
 \end{theorem}
 
-\begin{proof}
-		Since $\overline{X \cup Y}$ is closed and includes $X$ (since $X \subseteq X \cup Y \subseteq \overline{X \cup Y}$), then it includes $\overline{X}$. Similarly, since $\overline{X \cup Y}$ is closed and includes $Y$ (since $Y \subseteq X \cup Y \subseteq \overline{X \cup Y}$), then it includes $\overline{Y}$. Therefore:
-				$$\overline{X} \cup \overline{Y} \subseteq \overline{X \cup Y}$$
-		As $X \subseteq \overline{X} \subseteq \overline{X} \cup \overline{Y}$ and $Y \subseteq \overline{Y} \subseteq \overline{X} \cup \overline{Y}$, then $X \cup Y \subseteq \overline{X} \cup \overline{Y}$. Since $\overline{X} \cup \overline{Y}$ is closed (since it is a finite union of closed sets) and includes $X \cup Y$, then it includes $\overline{X \cup Y}$. Therefore:
-				$$\overline{X \cup Y} \subseteq \overline{X} \cup \overline{Y}$$
-		Which proves that $\overline{X} \cup \overline{Y} = \overline{X \cup Y}$.
+\begin{proof}~
+		\begin{itemize}
+				\item As $\overline{X \cup Y}$ is closed and includes $X$ (since $X \subseteq X \cup Y \subseteq \overline{X \cup Y}$), then it includes $\overline{X}$. Similarly, as $\overline{X \cup Y}$ is closed and includes $Y$, it includes $\overline{Y}$. Therefore, $\overline{X} \cup \overline{Y} \subseteq \overline{X \cup Y}$.
+				\item As $X \subseteq \overline{X} \subseteq \overline{X} \cup \overline{Y}$ and $Y \subseteq \overline{Y} \subseteq \overline{X} \cup \overline{Y}$, then $X \cup Y \subseteq \overline{X} \cup \overline{Y}$. Since $\overline{X} \cup \overline{Y}$ is closed (since it is a finite union of closed sets) and includes $X \cup Y$, then it includes $\overline{X \cup Y}$. Therefore, $\overline{X \cup Y} \subseteq \overline{X} \cup \overline{Y}$.
+		\end{itemize}
 \end{proof}
 
-\begin{corollary}[Intersection of interiors is interior of the intersection]
-		Let $(X, T)$ be a topological space, and let $X, Y \subseteq E$. Then, $\inter{X} \cap \inter{Y} = \inter{(X \cap Y)}$
+\begin{corollary}[Finite intersection of interiors is the interior of the intersection]
+		Let $X, Y \subseteq E$. Then, we have:
+				$$\inter{X} \cap \inter{Y} = \inter{(X \cap Y)}$$
 \end{corollary}
 
 \begin{proof}
@@ -343,83 +373,10 @@ In this section, $(E, T)$ will correspond to a topological space, and $X \subset
 \end{proof}
 
 \begin{remark}
-		The intersection of closures is not necessarily the closure of the intersection, and the union of interiors is not necessarily the interior of the union.
+		The finite intersection of closures is not necessarily the closure of the intersection, and the finite union of interiors is not necessarily the interior of the union.
 \end{remark}
 
-\subsection{Adherent and interior points}
-
-\begin{definition}[Adherent point] %different than limit point (explained on the english wikipedia)
-		Let $(E, T)$ be a topological space, and let $X \subseteq E$. Then $x \in E$ is said to be an adherent point of $X$ (or a closure point of $X$, or a contact point of $X$) when every neighbourhood of $x$ has a non-null intersection with $X$. That is:
-				$$\forall N \in \mathcal{N}(x), N \cap X \neq \varnothing$$
-\end{definition}
-
-\begin{definition}[Interior point]
-		Let $(E, T)$ be a topological space, and let $X \subseteq E$. Then $x \in E$ is said to be an interior point of $X$ when some neighbourhood of $x$ is included in $X$:
-				$$\exists N \in \mathcal{N}(X), N \subseteq X$$
-		Equivalently, $x \in E$ is an interior point of $X$ when $X$ is a neighbourhood of $x$.
-\end{definition}
-
-\begin{theorem}[Characteristic property of interior point]
-		Let $(E, T)$ be a topologial space, and let $X \subseteq E$. Then $x \in E$ is an interior point of $X$ if and only if $X$ is a neighbourhood of $x$.
-\end{theorem}
-
-\begin{proof}
-		Let's prove the equivalence:
-		\begin{itemize}
-				\item If $x$ is an interior point of $x$, then there exists a neighbourhood $N \in \mathcal{N}(x)$ of $x$ such that $N \subseteq X$. From the definition of neighbourhood, there exists an open $O \in T$ such that $x \in O \subseteq N$, and therefore we have $x \in O \subseteq X$, which means that $X$ is a neighbourhood of $x$.
-				\item If $X$ is a neighbourhood of $x$, then there trivially exists a neighbourhood $N \in \mathcal{N}(x)$ of $x$ such that $N \subseteq X$, as we can take $N = X$.
-		\end{itemize}
-\end{proof}
-
-\begin{theorem}[Characteristic property of adherent point] \label{thm:adherent-carac}
-		The above definition also works if we consider only the open neighbourhoods instead of every neighbourhood. That is, let $(E, T)$ be a topological space, and let $X \subseteq E$. Then $x \in E$ is an adherent point of $X$ if and only if:
-				$$\forall O \in \mathcal{N}(x) \cap T, O \cap X \neq \varnothing$$
-\end{theorem}
-
-\begin{proof}
-		Let's prove the implication and then the reciprocal.
-		\begin{itemize}
-				\item If $x \in E$ is an adherent point of $X$, then as all neighbourhoods of $x$ have a non-null intersection with $X$, then this is also the case for all open neighbourhoods of $X$.
-				\item Let $x \in E$ such that $\forall O \in \mathcal{N}(x) \cap T, O \cap X \neq \varnothing$, and let $N \in \mathcal{N}(x)$ be a neighbourhood of $x$. To prove that $x$ is an adherent point of $X$, we just need to prove that $N \cap X \neq \varnothing$. As $N$ is a neighbourhood of $x$, we have from the definition of neighbourhood that there exists an open $O \in T$ such that $x \in O$ and $O \subseteq N$. As $O$ is open, we have from theorem (\ref{thm:open-eq-neighbourhood}) that it is a neighbourhood for all its points, including $x$. Since $O$ is a neighbourhood of $x$ and is an open, then $O \in \mathcal{N}(x) \cap T$, and therfore from the hypothesis we have that $O \cap X \neq \varnothing$. As $O \subseteq N \neq \varnothing$, we therefore have $N \cap X \neq \varnothing$, which proves that $x$ is an adherent poit of $X$.
-		\end{itemize}
-\end{proof}
-
-\begin{theorem}[Adherent points are the points in the closure]
-		Let $(E, T)$ be a topological space, and let $X \in E$. Then, $x \in E$ is an adherent point of $X$ if and only if $x \in \overline{X}$
-\end{theorem}
-
-\begin{proof}
-		Let's prove the implication and then the reciprocal:
-		\begin{itemize}
-				\item Suppose that $x \in E$ is an adherent point of $X$ but that $x \notin \overline{X}$. From theorem (\ref{thm:neighbourhood-existence}), there exists an open neighbourhood $O \in \mathcal{N}(x) \cap T$ of $x$. Let $O'$ such that:
-						$$O' = O \cap \overline{X}^c = O \setminus \overline{X}$$
-				As $O'$ is the intersection of two opens, it is an open. We therefore have from theorem (\ref{thm:open-eq-neighbourhood}) that it is a neighbourhood of all its points. And, as $x \in O$ but that $x \notin \overline{X}$, we have that $x \in O \setminus \overline{X} = O'$. Therefore, $O'$ is a neighbourhood of $x$. But, we have:
-						$$O' \cap \overline{X} = (O \setminus \overline{X}) \cap \overline{X} = \varnothing$$
-				which contradicts the fact that $x$ is an adherent pointf :  of $X$.
-				\item Suppose that $x \in \overline{X}$ but that $x$ isn't an adherent point of $X$. Then, as $x$ isn't an adherent point of $X$, there exists an open neighbourhood $O \in \mathcal{N}(x) \cap T$ of $x$ such that $O \cap X = \varnothing$. Now, let $X'$ such that:
-						$$\overline{X}' = \overline{X} \cap O^c = \overline{X} \setminus O$$
-				As $\overline{X}'$ is an intersection of two closed sets, it is closed. Furthermore, as $O \cap X = \varnothing$, then:
-						$$X = X \setminus O \subseteq \overline{X} \setminus O = \overline{X}'$$
-				As such, $\overline{X}'$ is a closed set which includes $X$. It therefore is in $S = \{C \in \mathcal{C} \mid X \subseteq C\}$, and therefore we have $S = S \cup \{\overline{X}'\}$, which implies that:
-						$$\overline{X} = \bigcap_{C \in S} C = \bigcap_{C \in S \cup \{\overline{X}'\}} C = \overline{X}' \cap \bigcap_{C \in S} C = \overline{X}' \cap \overline{X} \subseteq \overline{X}'$$
-				And, as $x \in \overline{X}$, then $x \in \overline{X'}$. But, as $x \in O$, then $x \notin \overline{X} \setminus O = \overline{X'}$, contradicting the fact that $x \in \overline{X'}$.
-		\end{itemize}
-\end{proof}
-
-\begin{remark}
-		The previous proof was non-constructive.
-\end{remark}
-
-
-
-
-
-\begin{definition}[Limit point]
-		Let $(X, T)$ be a topological space, and let $X \subseteq E$. We say that $x \in E$ is
-\end{definition}
-
-
-
+\section{Limit}
 
 \begin{notation}[Image of a set]
 		Let $X$ and $Y$ be sets, let $f : X \rightarrow Y$, and let $A \subseteq X$. We write $f(A)$ for $\{f(a) \mid a \in A\}$. This notation isn't problematic, unless the set $A$ is itself in $X$, in which case we cannot know if $f(A)$ just means the image of $A$ or the set of images of all points of $A$.
