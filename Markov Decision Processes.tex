@@ -16,6 +16,7 @@
 \usepackage{csquotes}
 \DeclareMathOperator*{\argmax}{arg\,max} %Argmax
 \DeclareMathOperator*{\opE}{\mathbb{E}}
+\DeclareMathOperator{\ind}{\perp \!\!\! \perp}
 \newcommand*{\rf}{\mathbf{r}}           %State-reward function
 \newcommand*{\f}{\mathbf{f}}            %Visit function
 \newcommand*{\F}{\mathcal{F}}
@@ -47,6 +48,8 @@
 
 \begin{definition}[Discrete-time Markov chains]
 		A discrete-time Markov chain (DTMC) consists of a \textit{set of states} $S = \{1, \dots, n\}$ and a family of random variables $(S_t)_{t \in \mathbb{N}}$ over $S$, and which respects the Markov property:
+				$$S_{t+1} \ind S_0, \dots, S_{t-1} \mid S_t$$
+which means:
 				$$\mathbb{P}(S_{t+1} = s_{t+1} \mid S_0 = s_0, \dots, S_t = s_t) = \mathbb{P}(S_{t+1} = s_{t+1} \mid S_t = s_t)$$
 		We call this the probability at timestep $t$ of transitioning from state $s_t$ to state $s_{t+1}$. In that case, the Markov property can be interpreted as stating that, when knowing the present, knowing about the past does not give us more information about the future.
 \end{definition}
@@ -61,7 +64,7 @@
 		\end{itemize}
 \end{definition}
 
-We will now see how to solve time-homogeneous Markov chains. But, as there is no specific objective to time-homogeneous Markov chains, we will consider this question: If we were to start the Markov chain in a random state according to a probability distribution $\pi^0$ (represented as a row vector), what is the probability distribution $\pi^t$ telling which state we're at during timestep $t$? We will see a way to easily compute $\pi^t$.
+We will now see how to solve the following question for time-homogeneous Markov chains: if we were to start the Markov chain in a random state according to a probability distribution $\pi^0$ (represented as a row vector), what is the probability distribution $\pi^t$ telling which state we're at during timestep $t$? We will see a way to easily compute $\pi^t$.
 
 \begin{theorem}
 		For all $t \in \mathbb{N}$, we have:
@@ -98,11 +101,11 @@ Time-homogeneous Markov chains are very useful. However, they do not have any sp
 		A Markov Reward Process (MRP) is a time-homogeneous Markov chain in which:
 		\begin{itemize}
 				\item We add a family of random variables $(R_t)_{t \in \mathbb{N}^*}$ over $\mathbb{R}$, called rewards.
-				\item We make the Markov property stronger by assuming:
-						$$\mathbb{P}(S_{t+1} = s_{t+1} \mid S_t = s_t, R_1 = r_1, \dots, R_t = r_t) = \mathbb{P}(S_{t+1} = s_{t+1} \mid S_t = s_t)$$
-				\item Rewards respect their own Markov property:
+				\item We replace the Markov property by this stronger version:
+						$$S_{t+1} \ind S_0, R_1, S_1, R_2, \dots, S_{t-1}, R_t \mid S_t$$
 						$$\mathbb{E}[R_{t+1} \mid S_0 = s_0, \dots, S_t = s_t, R_1 = r_1, \dots, R_t = r_t] = \mathbb{E}[R_{t+1} \mid S_t = s_t]$$
-				\item Rewards are homogeneous:
+				\item We assume rewards are homogeneous, therefore the new homogeneousness condition becomes:
+						$$\mathbb{P}(S_{t+2} = s' \mid S_{t+1} = s) = \mathbb{P}(S_{t+1} = s' \mid S_t = s)$$
 						$$\mathbb{E}[R_{t+2} \mid S_{t+1} = s] = \mathbb{E}[R_{t+1} \mid S_t = s]$$
 		\end{itemize}
 		In that case, we can define a Markov reward process as a tuple $(S, P, R, \gamma)$ such that:
@@ -111,7 +114,7 @@ Time-homogeneous Markov chains are very useful. However, they do not have any sp
 				\item $R$ is a column vector where $r_s = \mathbb{E}[R_{t+1} \mid S_t = s]$ is the expected immediate reward from leaving $s$
 				\item $\gamma \in [0, 1)$ is called the discount factor
 		\end{itemize}
-		Some authors make one more assumption about rewards to make the homogeneousness condition of rewards stronger:
+		Some authors make one more assumption about rewards to make the homogeneousness condition of rewards even stronger:
 				$$\mathbb{E}[R_{t+2} \mid S_{t+1} = s, S_{t+2} = s'] = \mathbb{E}[R_{t+1} \mid S_t = s, S_{t+1} = s']$$
 				Which enables them to define the matrix $R'$ such that $r'_{s,s'} = R'(s, s') = \mathbb{E}[R_{t+1} \mid S_t = s, S_{t+1} = s']$ is the expected immediate reward obtained by transitioning from state $s$ to state $s'$. We will do so as well.
 \end{definition}
@@ -167,13 +170,11 @@ Note that in MRPs, althouh we gain rewards, we cannot take actions to maximize t
 		A Markov Decision Process (MDP) is a MRP in which:
 		\begin{itemize}
 				\item We add a family of random variables $(A_t)_{t \in \mathbb{N}}$ over a set of actions $A = \{1, \dots, m\}$
-				\item We make the Markov property stronger by assuming:
-						$$\mathbb{P}(S_{t+1} = s_{t+1} \mid S_t = s_t, A_0 = a_0, \dots, A_t = a_t) = \mathbb{P}(S_{t+1} = s_{t+1} \mid S_t = s_t, A_t = a_t)$$
-				\item We make the homogeneousness condition stronger by assuming:
-						$$\mathbb{P}(S_{t+2} = s' \mid S_{i+1} = s, A_{t+1} = a) = \mathbb{P}(S_{i+1} = s' \mid S_i = s, A_i = a)$$
-				\item We make the Markov property of rewards stronger by assuming:
-						$$\mathbb{E}[R_{t+1} \mid S_t = s_t, A_0 = a_0, \dots, A_t = a_t] = \mathbb{E}[R_{t+1} \mid S_t = s_t, A_t = a_t]$$
-				\item We make the homogeneousness condition of rewards stronger by assuming:
+				\item We replace the Markov property by this stronger version:
+						$$S_{t+1} \ind S_0, A_0, R_1, S_1, A_1, R_2, \dots, S_{t-1}, A_{t-1}, R_t \mid S_t$$
+						$$\mathbb{E}[R_{t+1} \mid S_0 = s_0, \dots, S_t = s_t, A_0 = a_0, \dots, A_t = a_t, R_1 = r_1, \dots, R_t = r_t] = \mathbb{E}[R_{t+1} \mid S_t = s_t, A_t = a_t]$$
+				\item We replace the homogeneousness condition by this stronger version:
+						$$\mathbb{P}(S_{t+2} = s' \mid S_{t+1} = s, A_{t+1} = a) = \mathbb{P}(S_{t+1} = s' \mid S_t = s, A_t = a)$$
 						$$\mathbb{E}[R_{t+2} \mid S_{t+1} = s, A_{t+1} = a] = \mathbb{E}[R_{t+1} \mid S_t = s, A_t = a]$$
 		\end{itemize}
 		We can then represent a MDP as a tuple $(S, A, P, R, \gamma)$ such that:
