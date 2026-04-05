@@ -14,6 +14,8 @@
 \newtheorem{example}{Example}[section]
 \theoremstyle{notation}
 \newtheorem{notation}{Notation}[section]
+\theoremstyle{axiom}
+\newtheorem{axiom}{Axiom}[section]
 \DeclareMathOperator*{\argmax}{arg\,max}
 \usepackage{fullpage}
 \usepackage{outlines}
@@ -28,6 +30,7 @@
 \newcommand{\E}[1]{\mathbb{E}[#1]}
 \newcommand{\V}[1]{\mathbb{V}[#1]}
 \newcommand{\pr}{\mathbf{pr}}
+\newcommand{\bracket}[1]{[#1]}
 
 \let\P\relax
 \NewDocumentCommand{\P}{o}{\mathbb{P}\IfValueT{#1}{\left[#1\right]}}
@@ -202,8 +205,8 @@
 
 \begin{definition}[Counting measure]
     Let $(X, \mathcal{A})$ be a measurable space. The counting measure is defined as:
-        $$\chi(A) = \begin{cases} Card(A) & \tif A \text{ is countable}\\ \infty & \tif A \text{ is uncountable}\end{cases} = \begin{cases}Card(A) & \tif A \text{ is finite}\\ \infty & \tif A \text{ is infinite}\end{cases}$$
-		If $X$ is countable, then $\chi$ is a discrete measure since for all $A \in \mathcal{A}$, we have $\chi(A) = Card(A) = \sum_{x \in A} 1 = \sum_{x \in A} \delta_x(A) = \left(\sum_{x \in A} \delta_x\right)(A)$. If $X$ is uncountable, then $\chi$ still is a measure, because $\chi(\varnothing)=0$ and that, for all countable family $(A_i)_{i \in \mathbb{N}}$ of distinct measurable sets, we have $\chi(\bigcup_{i\in\mathbb{N}} A_i) = \infty = \sum_{i\in\mathbb{N}} \chi(A_i)$.
+        $$\chi(A) = \begin{cases}Card(A) & \tif A \text{ is finite}\\ \infty & \tif A \text{ is infinite}\end{cases}$$
+		If $X$ is finite, then $\chi$ is a discrete measure since for all $A \in \mathcal{A}$, we have $\chi(A) = Card(A) = \sum_{x \in A} 1 = \sum_{x \in A} \delta_x(A) = \left(\sum_{x \in A} \delta_x\right)(A)$. If $X$ is infinite, then $\chi$ still is a measure, because $\chi(\varnothing)=0$ and that, for all countable family $(A_i)_{i \in \mathbb{N}}$ of distinct measurable sets, we have $\chi(\bigcup_{i\in\mathbb{N}} A_i) = \infty = \sum_{i\in\mathbb{N}} \chi(A_i)$.
 \end{definition}
 
 %\begin{theorem}
@@ -312,6 +315,14 @@
 		\end{itemize}
 \end{proof}
 
+\begin{theorem}[Powers of measurable functions are measurable] \label{thm:power-measurable-is-measurable}
+		Let $(X, \mathcal{A})$ be a measurable space, let $f \in \mathcal{M}(X, \mathbb{R})$ be a measurable function, and let $k \in \mathbb{N}$. Then, $f^k$ is measurable.
+\end{theorem}
+
+\begin{proof}
+		As $f^k = (g \circ f)$, where $g(x) = x^k$ is measurable (because \fbox{it is continuous}), then $f^k$ is also measurable.
+\end{proof}
+
 \begin{theorem}[Finite products of measurable functions are measurable] \label{thm:product-measurable-functions}
 		Let $(X, \mathcal{A})$ be a measurable space, and let $f_1, \dots, f_n \in \mathcal{M}(X, [-\infty, \infty])$ be measurable functions. Then, $\prod_{i=1}^n f_i$ is measurable. Note that, by definition of the augmented real numbers, $0 \cdot \infty = 0 \cdot -\infty = 0$.
 \end{theorem}
@@ -320,20 +331,210 @@
 		Just as in theorem (\ref{thm:linear-combination-measurable}), we remark that $\prod_{i=1}^n f_i = (p \circ F)$, where $p(x_1, \dots, x_n) = \prod_{i=1}^n x_i$ \fbox{is continuous} and therefore measurable, and where $F(x_1, \dots, x_n) = (f_1(x_1), \dots, f_n(x_n))$ has already been proven to be measurable. Therefore, $\prod_{i=1}^n f_i$ is measurable.
 \end{proof}
 
-\begin{theorem}[Supremum and infremum of families of measurable functions are measurable] %Benjamin Charlier (proposition 2.17)
-		Let $(X, \mathcal{A})$ be a measurable space, and let $(f_n)_{n \in \mathbb{N}}$ be a countable family of measurable functions of $\mathcal{M}(X, [-\infty, \infty])$. Then, $\inf_{n \in \mathbb{N}}(f_n) \in \mathcal{M}(X, [-\infty, \infty])$ and $\sup_{n \in \mathbb{N}}(f_n) \in \mathcal{M}(X, [-\infty, \infty])$.
+\fbox{Move the definitions of inf, sup, lim inf, and lim sup somewhere else}
+
+\begin{definition}[Binary relation]
+		Let $X$ and $Y$ be sets. We say that $\mathcal{R}$ is a \textit{relation} between $X$ and $Y$ when $\mathcal{R} \subseteq X \times Y$. We note $x \mathcal{R} y$ to state that $(x, y) \in \mathcal{R}$.
+\end{definition}
+
+\begin{definition}[Relational structure] %ProofWiki (Definition:Relational Structure)
+		A \textit{relational structure} is a couple $(X, \mathcal{R})$ where $\mathcal{R}$ is a binary relation between $X$ and $X$.
+\end{definition}
+
+\begin{definition}[Ordered set and ordering] %ProofWiki (Definition:Ordered Set) and (Definition:Ordering)
+		Let $(X, \mathcal{R})$ be a relational structure. We say that $(X, \mathcal{R})$ is an \textit{ordered set} when $\mathcal{R}$ is an \textit{ordering}, that is:
+		\begin{itemize}
+				\item $\mathcal{R}$ is reflexive:
+						$$\forall x \in X, x \mathcal{R} x$$
+				\item $\mathcal{R}$ is transitive:
+						$$\forall x, y, z \in X, x \mathcal{R} y \land y \mathcal{R} z \implies x \mathcal{R} z$$
+				\item $\mathcal{R}$ is antisymmetric:
+						$$\forall x, y \in X, x \mathcal{R} y \land y \mathcal{R} z \implies x = y$$
+		\end{itemize}
+		In that case, we often note $\mathcal{R}$ as $\preceq$.
+\end{definition}
+
+\begin{remark}
+		We do not assume that $\preceq$ is total (that is, that $\forall x, y \in X, x \preceq y \lor y \preceq x$).
+\end{remark}
+
+\begin{definition}[Upper and lower bounds]
+		Let $(X, \preceq)$ be an ordered set, let $A \subseteq X$, and let $x \in X$. We say that $x$ is an \textit{upper bound} of $A$ when, for all $a \in A, a \preceq x$. Similarly, we say that $x$ is a \textit{lower bound} of $A$ when, for all $a \in A$, $x \preceq a$.
+\end{definition}
+
+\begin{definition}[Supremum and infimum] %ProofWiki (Definition:Supremum of Set)
+		Let $(X, \preceq)$ be an ordered set, and let $A \subseteq X$. We say that $x \in X$ is the \textit{supremum} of $A$ when it is the smallest upper bound of $A$, that is, when $x$ is an upper bound of $A$ such that, for all upper bound $x'$ of $A$, we have $x \preceq x'$. If the supremum of $A$ exists, it must be unique, (as if there were two supremums $x$ and $x'$ of $A$, we would have $x \preceq x'$ and $x' \preceq x$, and therefore $x = x'$). In that case, we note it $\sup(A)$. Similarly, we say that $x \in X$ is the \textit{infimum} of $A$ when it is the biggest upper bound of $A$. If it exists, it must also be unique. In that case, we note it $\inf(A)$.
+\end{definition}
+
+\begin{theorem}[Bigger sets have bigger supremum] \label{thm:bigger-set-bigger-sup}
+		Let $(X, \preceq)$ be an ordered set, and let $A \subseteq B \subseteq X$. If both $A$ and $B$ have a supremum, then $\sup(A) \preceq \sup(B)$. Similarly, if both $A$ and $B$ have an infimum, then $\inf(B) \preceq \inf(A)$.
 \end{theorem}
 
 \begin{proof}
-		
+		Let's prove it for $\sup$, as the proof for $\inf$ is symmetric. As $\sup(B)$ is an upper bound of $B$, then it is an upper bound of $A$, and as $\sup(A)$ is the smallest upper bound of $A$, then $\sup(A) \preceq \sup(B)$.
 \end{proof}
 
-\begin{theorem}[Pointwise limits of measurable functions are measurable] \label{thm:limit-measurable-is-measurable}
+\begin{definition}[Least-upper-bound property / completeness] %ProofWiki (Definition:Order Complete Set)
+		Let $(X, \preceq)$ be an ordered set. We say that $(X, \preceq)$ respect the \textit{least-upper-bound property} (or that it is \textit{order complete}) when all nonempty subset $A \subseteq X$ which have an upper bound also have a supremum.
+\end{definition}
+
+\begin{theorem}[Characteristic property of the least-upper-bound property]
+		Let $(X, \preceq)$ be an ordered set. Then, $(X, \preceq)$ is order complete if and only if all nonempty subset $A \subseteq X$ which have a lower bound also have an infimum.
+\end{theorem}
+
+\begin{proof}~
+		Let's prove the implication, as the proof for the reciprocal is symmetric. Suppose $(X, \preceq)$ is order complete, let $A \subseteq X$ be a nonempty subset which has a lower bound $x \in X$, and let's prove that $A$ has an infimum. Let $B = \{y \in X \mid \forall a \in A, y \preceq a\}$ be the set of all lower bounds of $A$. Let's firstly prove that $B$ has a supremum. As $x$ is a lower bound of $A$, then $x \in B$, and therefore $B$ is nonempty. Furthermore, as $A$ is nonempty, there exists $a \in A$, and therefore for all $b \in B$, $b \preceq a$. $a$ is therefore an upper bound of $B$. As $(X, \preceq)$ is order complete, that $B$ is nonempty, and that $B$ has an upper bound $a$, then $B$ therefore has a supremum $\sup(B)$. Let's now prove that $\sup(B)$ is the infimum of $A$. Since we already know that $\sup(B)$ is greater than any lower bound of $A$ (because $\forall b \in B, b \preceq \sup(B)$), we just need to prove that $\sup(B)$ is a lower bound of $A$. Suppose that $\sup(B)$ weren't a lower bound of $A$. Then, there would exist $a' \in A$ such that $\lnot(\sup(B) \preceq a')$. But as $\forall b \in B, b \preceq a'$, then $a'$ would be an upper bound of $B$, contradicting the fact that $\sup(B)$ is the smallest upper bound of $B$ (i.e. the fact $\sup(B) \preceq u$ for all upper bound $u$ of $B$).
+\end{proof}
+
+\begin{axiom}
+		$(\mathbb{R}, \leq)$ is order complete.
+\end{axiom}
+
+\begin{theorem} \label{thm:r-bar-order-complete}
+		$([-\infty, \infty], \leq)$ is order complete.
+\end{theorem}
+
+\begin{proof}
+		Let $A \subseteq [-\infty, \infty]$ be nonempty with an upper bound in $[-\infty, \infty]$. Let's prove that $A$ has a supremum.
+		\begin{itemize}
+				\item If $A$ has a finite upper bound $x \in \mathbb{R}$, then $\infty \notin A$ (as otherwise we would have $\infty \leq x$, which is impossible since $x \in \mathbb{R}$), and therefore $A \setminus \{-\infty\} \subseteq \mathbb{R}$. Since $A$ has the finite upper bound $x$, then $A \setminus \{-\infty\}$ still has the upper bound $x$, but this time in the ordered set $(\mathbb{R}, \leq)$, which is order complete, and therefore $A \setminus \{-\infty\}$ has a supremum $y \in \mathbb{R}$. As $-\infty \leq y$, then $y$ is also the supremum of $A$.
+				\item If $A$ has no finite upper bound in $\mathbb{R}$, then its upper bounds must be in \{$-\infty$, $\infty$\}.
+				\begin{itemize}
+						\item If $-\infty$ is an upper bound of $A$, then it is the smallest, and is therefore the supremum of $A$.
+						\item If $-\infty$ is not an upper bound of $A$, then the upper bound of $A$ must be $+\infty$. As it is also the only upper bound, it is also the smallest, and therefore $+\infty$ is the supremum of $A$.
+				\end{itemize}
+		\end{itemize}
+\end{proof}
+
+\begin{remark}
+		Since in $([-\infty, \infty], \leq)$, all sets have the upper bound $\infty$ and the lower bound $-\infty$, then we deduce from theorem (\ref{thm:r-bar-order-complete}) that all nonempty sets have a supremum and an infimum. Furthermore, even $\varnothing$ has a supremum and an infimum, which are $\inf(\varnothing) = \infty$ and $\sup(\varnothing) = -\infty$.
+\end{remark}
+
+\begin{theorem}[Supremum precedes iff all elements precede] \label{thm:supremum-precedes} %ProofWiki (Characterization of Supremum Precedes Element)
+		Let $(X, \preceq)$ be an ordered set, let $A \subseteq X$, and let $x \in X$. Then, if $\sup(A)$ exists, then $\sup(A) \preceq x$ if and only if $\forall a \in A, a \preceq x$. Similarly, if $\inf(A)$ exists, then $x \preceq \inf(A)$ if and only if $\forall a \in A, x \preceq a$.
+\end{theorem}
+
+\begin{proof} Let's prove it for the supremum, as the proof for the infremum is symmetric.
+		\begin{itemize}
+				\item If $\sup(A) \preceq x$, then for all $a \in A$, $a \preceq \sup(A) \preceq x$.
+				\item If $\forall a \in A, a \preceq x$, then $x$ is an upper bound of $A$. Therefore, $\sup(A) \preceq x$.
+		\end{itemize}
+\end{proof}
+
+\begin{theorem}[Infimum precedes supremum for nonempty sets] \label{thm:infimum-precedes-supremum}
+		Let $(X, \preceq)$ be an ordered set, let $A \subseteq X$ be nonempty such that $\inf(A)$ and $\sup(A)$ exist. Then, $\inf(A) \preceq \sup(A)$.
+\end{theorem}
+
+\begin{proof}
+		As $A$ is nonempty, there exists $a \in A$. As $\inf(A)$ is a lower bound of $A$, then $\inf(A) \preceq a$, and as $\sup(A)$ is an upper bound of $A$, then $a \preceq \sup(A)$, and therefore $\inf(A) \preceq \sup(A)$.
+\end{proof}
+
+\begin{notation}
+		Let $(X, \preceq)$ be an ordered set, and let $(x_n)_{n \in \mathbb{N}}$ be a countable family of elements of $X$. When $\sup(\{x_n \mid n \in \mathbb{N}\})$ is defined, we note it $\sup_{n \in \mathbb{N}}(x_n)$. Similarly, when $\inf(\{x_n \mid n \in \mathbb{N}\})$ is defined, we note it $\inf_{n \in \mathbb{N}}(x_n)$.
+\end{notation}
+
+\begin{notation}
+		Let $X$ be a set, let $(Y, \preceq)$ be an ordered set, and let $(f_n)_{n \in \mathbb{N}}$ be a countable family of functions of $X \rightarrow Y$. We note $\sup_{n \in \mathbb{N}}(f_n)$ for the function $x \mapsto \sup_{n \in \mathbb{N}}(f_n(x))$, and we note $\inf_{n \in \mathbb{N}}(f_n)$ for the function $x \mapsto \inf_{n \in \mathbb{N}}(f_n(x))$.
+\end{notation}
+
+\begin{definition}[Superior and inferior limit] %Wikipedia (Limite supérieure et limite inférieure)
+		Let $(x_n)_{n \in \mathbb{N}}$ be a countable family of elements of $[-\infty, \infty]$, let $(y_n)_{n \in \mathbb{N}}$ such that $y_n = \sup_{k \geq n}(x_k)$, and let $(z_n)_{n \in \mathbb{N}}$ such that $z_n = \inf_{k \geq n}(x_k)$. We define the \textit{superior limit} of $(x_n)_{n \in \mathbb{N}}$ as:
+				$$\limsup_{n \rightarrow \infty}(x_n) \coloneq \inf_{n \in \mathbb{N}}(y_n) = \inf_{n \in \mathbb{N}}(\sup_{k \geq n}(x_k))$$
+		and we define the \textit{inferior limit} of $(x_n)_{n \in \mathbb{N}}$ as:
+				$$\liminf_{n \rightarrow \infty}(x_n) \coloneq \sup_{n \in \mathbb{N}}(z_n) = \sup_{n \in \mathbb{N}}(\inf_{k \geq n}(x_k))$$
+\end{definition}
+
+\begin{theorem}[The limit of an increasing/decreasing family is its supremum/infremum]
+		Let $(x_n)_{n \in \mathbb{N}}$ be a countable family of elements of $[-\infty, \infty]$. If $(x_n)_{n \in \mathbb{N}}$ is increasing, then $\lim_{n \rightarrow \infty} x_n = \sup_{n \in \mathbb{N}}(x_n)$, and if $(x_n)_{n \in \mathbb{N}}$ is decreasing, then $\lim_{n \rightarrow \infty} x_n = \inf_{n \in \mathbb{N}}(x_n)$.
+\end{theorem}
+
+\begin{proof}
+		\fbox{Requires the notion of adherence}
+\end{proof}
+
+\begin{theorem}[Characteristic property of superior and inferior limit] \label{thm:superior-limit-charac}
+		Let $(x_n)_{n \in \mathbb{N}}$ be a countable family of elements of $[-\infty, \infty]$. Then:
+				$$\limsup_{n \rightarrow \infty}(x_n) = \lim_{n \rightarrow \infty} \sup_{k \geq n}(x_k)$$
+				$$\liminf_{n \rightarrow \infty}(x_n) = \lim_{n \rightarrow \infty} \inf_{k \geq n}(x_k)$$
+\end{theorem}
+
+\begin{proof}
+		Let's prove it for $\limsup$, as the proof for $\liminf$ is symmetric. Let $(u_n)_{n \in \mathbb{N}}$ such that $u_n = \sup_{k \geq n}(x_k)$. Then, we have:
+				$$u_n = \sup_{k \geq n}(x_k) \geq \sup_{k \geq n + 1}(x_k) = u_{n+1}$$
+		where the inequality comes from the fact that $(x_k)_{k \geq n} \subseteq (x_k)_{k \geq n + 1}$. Therefore, $(u_n)_{n \in \mathbb{N}}$ is decreasing, and thus:
+				$$\limsup_{n \rightarrow \infty}(x_n) = \inf_{n \in \mathbb{N}}(\sup_{k \geq n}(x_n)) = \inf_{n \in \mathbb{N}}(u_n) = \lim_{n \rightarrow \infty} u_n = \lim_{n \rightarrow \infty} \sup_{k \geq n}(x_k)$$
+\end{proof}
+
+\begin{theorem}[$\inf$ lower than $\liminf$ lower than $\limsup$ lower than $\sup$] \label{inf-leq-liminf-leq-limsup-leq-sup}
+		Let $(x_n)_{n \in \mathbb{N}}$ be a countable family of elements of $[-\infty, \infty]$. Then, for all $m \in \mathbb{N}$, we have:
+				$$\inf_{k \geq m}(x_k) \leq \liminf_{n \rightarrow \infty}(x_n) \leq \limsup_{n \rightarrow \infty}(x_n) \leq \sup_{k \geq m}(x_k)$$
+\end{theorem}
+
+\begin{proof}
+		\begin{align*}
+				\inf_{k \geq m}(x_k) &\leq \sup_{n \in \mathbb{N}}(\inf_{k \geq n}(x_k))\\
+									 &= \liminf_{n \rightarrow \infty}(x_n)\\
+									 &= \lim_{n \rightarrow \infty} \inf_{k \geq n}(x_k)\\
+									 &\leq \lim_{n \rightarrow \infty} \sup_{k \geq n}(x_k) \text{ \fbox{As lower families have lower limit}}\\
+									 &= \limsup_{n \rightarrow \infty}(x_n)\\
+									 &= \inf_{n \in \mathbb{N}}(\sup_{k \geq n}(x_k))\\
+									 &\leq \sup_{k \geq m}(x_k)
+		\end{align*}
+\end{proof}
+
+\begin{theorem}[Superior and inferior limits meet only at convergence] \label{limsup-eq-liminf-iff-converge}%First answer of https://math.stackexchange.com/questions/1689199
+		Let $(x_n)_{n \in \mathbb{N}}$ be a countable family of elements of $[-\infty, \infty]$. Then $(x_n)_{n \in \mathbb{N}}$ converges to $x \in [-\infty, \infty]$ if and only if $x = \liminf_{n \rightarrow \infty}(x_n) = \limsup_{n \rightarrow \infty}(x_n)$.
+\end{theorem}
+
+\begin{proof}
+		Let $x \in [-\infty, \infty]$.
+		\begin{itemize}
+				\item Suppose that $(x_n)_{n \in \mathbb{N}}$ converges towards $x$, that is:
+						$$\forall \epsilon > 0, \exists N \in \mathbb{N}, \forall n \geq N, x - \epsilon \leq x_n \leq x + \epsilon$$
+				We can add a quantifier like so:
+						$$\forall \epsilon > 0, \exists N \in \mathbb{N}, \forall n \geq N, \forall k \geq n, x - \epsilon \leq x_k \leq x + \epsilon$$
+						Let $\epsilon > 0$, such $N$, and $n \geq N$. From theorem (\ref{thm:supremum-precedes}), we deduce from the first inequality (i.e. $\forall k \geq n, x - \epsilon \leq x_k$) that $x - \epsilon \leq \inf_{k \geq n}(x_k)$, and from the second inequality (i.e. $\forall k \geq n, x_k \leq x + \epsilon$) that $\sup_{k \geq n}(x_k) \leq x + \epsilon$. if we add these inequalities to the result of theorem (\ref{inf-leq-liminf-leq-limsup-leq-sup}), we have:
+						$$x - \epsilon \leq \inf_{k \geq n}(x_k) \leq \liminf_{n \rightarrow \infty}(x_n) \leq \limsup_{n \rightarrow \infty}(x_n) \leq \sup_{k \geq n}(x_k) \leq x + \epsilon$$
+				or more simply:
+						$$x - \epsilon \leq \liminf_{n \rightarrow \infty}(x_n) \leq \limsup_{n \rightarrow \infty}(x_n) \leq x + \epsilon$$
+				and this for all $\epsilon > 0$, proving that $x = \liminf_{n \rightarrow \infty}(x_n) = \limsup_{n \rightarrow \infty}(x_n)$.
+				\item If $x = \liminf_{n \rightarrow \infty}(x_n) = \limsup_{n \rightarrow \infty}(x_n)$, then $\lim_{n \rightarrow \infty}\sup_{k \geq n}(x_k) = \lim_{n \rightarrow \infty}\inf_{k \geq n}(x_n)$, and since we have $\sup_{k \geq n}(x_k) \geq x_k \geq \inf_{k \geq n}(x_k)$, then $(x_n)_{n \in \mathbb{N}}$ converges to $x$ by the \fbox{squeeze theorem}.
+		\end{itemize}
+\end{proof}
+
+\begin{theorem}[Supremum and infremum of families of measurable functions are measurable] \label{thm:sup-inf-measurable}%Benjamin Charlier (proposition 2.17)
+		Let $(X, \mathcal{A})$ be a measurable space, and let $(f_n)_{n \in \mathbb{N}}$ be a countable family of measurable functions of $\mathcal{M}(X, [-\infty, \infty])$. Then, $\sup_{n \in \mathbb{N}}(f_n) \in \mathcal{M}(X, [-\infty, \infty])$ and $\inf_{n \in \mathbb{N}}(f_n) \in \mathcal{M}(X, [-\infty, \infty])$.
+\end{theorem}
+
+\begin{proof}
+		Let's prove it for $\sup$, as the proof for $\inf$ is symmetric. Let $f = \sup_{n \in \mathbb{N}}(f_n)$. As \fbox{$\mathcal{B}([-\infty, \infty])$ is generated by $\{[-\infty, a] \mid a \in \mathbb{R}\}$}, we only need to prove from theorem (\ref{thm:measurable-iff-measurable-on-generating-sigma-algebra}) that, for all $a \in \mathbb{R}$, $f^{-1}([-\infty, a]) \in \mathcal{A}$. Let $a \in \mathbb{R}$. Then, we have:
+		\begin{align*}
+				f^{-1}([-\infty, a]) &= \{x \in X \mid f(x) \in [-\infty, a]\}\\
+									 &= \{x \in X \mid f(x) \leq a\}\\
+									 &= \{x \in X \mid \sup_{n \in \mathbb{N}}(f_n(x)) \leq a\}\\
+									 &= \{x \in X \mid \forall n \in \mathbb{N}, f_n(x) \leq a\}\\
+									 &= \bigcap_{n \in \mathbb{N}} \{x \in X \mid f_n(x) \leq a\}\\
+									 &= \bigcap_{n \in \mathbb{N}} f_n^{-1}([-\infty, a])
+		\end{align*}
+		As each $f_n$ is measurable, then each $f_n^{-1}([-\infty, a])$ is measurable, and therefore the intersection is measurable, proving that $f$ is measurable.	
+\end{proof}
+
+\begin{theorem}[Superior and inferior limit of families of measurable functions are measurable] \label{thm:limsup-liminf-measurable} %Benjamin Charlier (proposition 2.17)
+		Let $(X, \mathcal{A})$ be a measurable space, and let $(f_n)_{n \in \mathbb{N}}$ be a countable family of measurable functions of $\mathcal{M}(X, [-\infty, \infty])$. Then, $\limsup_{n \rightarrow \infty}(f_n) \in \mathcal{B}([-\infty, \infty])$ and $\liminf_{n \rightarrow \infty}(f_n) \in \mathcal{B}([-\infty, \infty])$.
+\end{theorem}
+
+\begin{proof}
+		Let's prove it for $\limsup$, as the proof for $\liminf$ is symmetric. Let $(g_n)_{n \in \mathbb{N}}$ such that $g_n = \sup_{k \geq n}(f_n)$. From theorem (\ref{thm:sup-inf-measurable}), we have that each $g_n$ is measurable. Furthermore, we have:
+				$$\limsup_{n \rightarrow \infty}(f_n) = \inf_{n \in \mathbb{N}}(g_n)$$
+		which is measurable from theorem (\ref{thm:sup-inf-measurable}).
+\end{proof}
+
+\begin{theorem}[Pointwise limits of measurable functions are measurable] \label{thm:limit-measurable-is-measurable} %Benjamin Charlier (proposition 2.17)
 		Let $(X, \mathcal{A})$ be a measurable space, and let $(f_n)_{n \in \mathbb{N}}$ be a countable family of measurable functions of $\mathcal{M}(X, [-\infty, \infty])$. Then, if $(f_n)_{n \in \mathbb{N}}$ converges pointwise to a function $f$, then $f$ is measurable.
 \end{theorem}
 
 \begin{proof}
-		
+		Suppose $(f_n)_{n \in \mathbb{N}}$ converges pointwise to a function $f$. Then, for all $x \in X$, $(f_n(x))_{n \in \mathbb{N}}$ converges towards $f(x)$, and therefore from theorem (\ref{limsup-eq-liminf-iff-converge}), $f(x) = \liminf_{n \rightarrow \infty} f_n(x) = \limsup_{n \rightarrow \infty} f_n(x)$. Therefore, $f = \liminf_{n \rightarrow \infty} f_n = \limsup_{n \rightarrow \infty} f_n$, which are measurable from theorem (\ref{thm:limsup-liminf-measurable}).
 \end{proof}
 
 \section{Integration}
@@ -374,12 +575,12 @@
 		From theorem (\ref{thm:simple-function-charac}), it follows directly that we can use theorems (\ref{thm:linear-combination-measurable}) and (\ref{thm:product-measurable-functions}) to deduce respectively that finite linear combinations of simple functions and finite products of simple functions are simple.
 \end{remark}
 
-\begin{theorem}[Positive measurable functions are the pointwise limit of an ascending family of positive simple functions] \label{thm:pointwise-simple} %Thanks Benjamin Charlier (proposition 3.2)
-		Let $(X, \mathcal{A})$ be a measurable space and let $f \in \mathcal{M}(X, [0, \infty])$ be a positive measurable function. Then, there is a countable ascending family $(f_n)_{n \in \mathbb{N}}$ of positive simple functions such that for all $x \in X$, $\lim_{n \rightarrow \infty} f_n(x) = f(x)$. Note that this limit is indeed defined in $[0, \infty]$ because $(f_n(x))_{i \in \mathbb{N}}$ is ascending.
+\begin{theorem}[Positive measurable functions are pointwise limits of ascending families of positive simple functions] \label{thm:pointwise-simple} %Thanks Benjamin Charlier (proposition 3.2)
+		Let $(X, \mathcal{A})$ be a measurable space, and let $f : X \rightarrow [0, \infty]$. Then, $f \in \mathcal{M}(X, [0, \infty])$ if and only if there is a countable ascending family $(f_n)_{n \in \mathbb{N}}$ of positive simple functions which converges pointwise to $f$.
 \end{theorem}
 
 \begin{proof}
-		Let's consider the following countable family, defined for all $n \in \mathbb{N}$ and $x \in X$ as:
+		The reciprocal is easy to prove. Indeed, let $(f_n)_{n \in \mathbb{N}}$ be a countable ascending family of positive simple functions which converges pointwise to $f$. Then, since all $f_n$ are simple functions, they are measurable, and therefore from theorem (\ref{thm:limit-measurable-is-measurable}), $f$ must be measurable. Let's now prove the implication by considering the following countable family, defined for all $n \in \mathbb{N}$ and $x \in X$ as:
 		\begin{align*}
 				f_n(x) & \coloneq n\mathbbm{1}_{f^{-1}([n, \infty[)} + \sum_{i=0}^{n2^n - 1} \frac{i}{2^n}\mathbbm{1}_{A_i^{(n)}} & A_i^{(n)} &\coloneq f^{-1}(I_i^{(n)}) & I_i^{(n)} &\coloneq [\frac{i}{2^n}, \frac{i+1}{2^n}[
 		\end{align*}
@@ -410,10 +611,6 @@
 		\end{itemize} 
 \end{proof}
 
-\begin{remark}
-		The reciprocal of theorem (\ref{thm:pointwise-simple}) is true, but we will neither prove it nor use it here.
-\end{remark}
-
 \begin{definition}[Integral of a positive simple function]
 		Let $(X, \mathcal{A}, \mu)$ be a measure space, and let $f(x) = \sum_{i=1}^n c_i \mathbbm{1}_{A_i}(x)$ be a \textit{positive} simple function. Then, we define the integral of $f$ according to the measure $\mu$ as:
 				$$\int_X f \dd \mu = \sum_{i=1}^n c_i \mu(A_i)$$
@@ -423,7 +620,7 @@
 		The integral of a positive simple function may be infinite.
 \end{remark}
 
-\begin{theorem}[Integrals of positive simple functions are linear]
+\begin{theorem}[Integral of positive simple functions is linear]
 		Let $(X, \mathcal{A}, \mu)$ be a measure space, let $f_1, \dots, f_n \in \mathcal{E}^+(X)$ be positive simple functions, and let $a_1, \dots, a_n \in \mathbb{R}$. Then:
 				$$\int_X \sum_{i=1}^n a_i f_i \dd \mu = \sum_{i=1}^n a_i \int_X f_i \dd \mu$$
 \end{theorem}
@@ -495,17 +692,17 @@
 		The integral of positive measurable functions can be infinite. Furthermore, since $f \in \mathcal{M}(X, [0, \infty])$, the function $f$ can take the value $\infty$. Remember that, from theorem (\ref{thm:product-measurable-functions}), the product $f \mathbbm{1}_A$ is defined even when $f$ takes the value $\infty$ or $-\infty$, because from the definition of the extended real numbers, $0 \cdot \infty = 0 \cdot -\infty = 0$.
 \end{remark}
 
-\begin{theorem}[Smaller positive measurable functions have a smaller integral] \label{thm:smaller-positive-measurable-functions-smaller-integral}
+\begin{theorem}[Smaller positive measurable functions have a smaller integral] \label{thm:smaller-positive-measurable-functions-smaller-integral} % Benjamin Charlier (proposition 3.10)
 		Let $(X, \mathcal{A}, \mu)$ be a measure space, and let $f, g \in \mathcal{M}(X, [0, \infty])$. If $f \leq g$, then:
 				$$\int_X f \dd \mu \leq \int_X g \dd \mu$$
 \end{theorem}
 
 \begin{proof}
-		Let $E_f = \{h \in \mathcal{E}^+(X) \mid h \leq f\}$ and $E_g = \{h \in \mathcal{E}^+(X) \mid g \leq f\}$. Since $f \leq g$, then $E_f \subseteq E_g$, and therefore:
-		$$\int_X f \dd \mu = \sup_{h \in E_f} \left(\int_X h \dd \mu\right) \leq \sup_{h \in E_g} \left(\int_X h \dd \mu\right)$$
+		Let $E_f = \{h \in \mathcal{E}^+(X) \mid h \leq f\}$ and $E_g = \{h \in \mathcal{E}^+(X) \mid h \leq g\}$. Since $f \leq g$, then $E_f \subseteq E_g$, and therefore:
+		$$\int_X f \dd \mu = \sup_{h \in E_f} \left(\int_X h \dd \mu\right) \leq \sup_{h \in E_g} \left(\int_X h \dd \mu\right) = \int_X g \dd \mu$$
 \end{proof}
 
-\begin{theorem}[Integrating a positive measurable function on a smaller set gives a smaller integral]
+\begin{theorem}[Integrating a positive measurable function on a smaller set gives a smaller integral] % Benjamin Charlier (proposition 3.10)
 		Let $(X, \mathcal{A}, \mu)$ be a measure space, and let $f \in \mathcal{M}(X, [0, \infty])$. For all measurable sets $A, B \in \mathcal{A}$, if $A \subseteq B$, then:
 				$$\int_A f \dd \mu \leq \int_B f \dd \mu$$
 \end{theorem}
@@ -521,23 +718,56 @@
 \end{theorem}
 
 \begin{proof}
-		\fbox{Requires the proof that the limit of integrals of an ascending family of positive simple function converges to  the integral of the limit}
-		\fbox{Also requires that Smaller positive measurable functions have a smaller integral}
-		\fbox{Also requires that, when integrating on a subset, the integral is lower}
+		\fbox{Requires Définition 3.8 (the limit of integrals of an ascending family of positive simple functions converges to the integral of the limit)}
+		\fbox{Définition 3.8 requires Lemme 3.7}
+		\fbox{Lemme 3.7 requires Lemme 3.6)}
 \end{proof}
 
-\begin{theorem}[Integral of positive measurable functions are linear] %Benjamin Charlier (corollaire 3.12)
+\begin{theorem}[Integral of positive measurable functions is linear] \label{thm:integral-positive-measurable-functions-linear} %Benjamin Charlier (corollaire 3.12)
 		\fbox{Requires the Monotone convergence theorem / Beppo Levi theorem}
 \end{theorem}
 
 
-\begin{definition}[Integral of a measurable function]
-		Let $(X, \mathcal{A}, \mu)$ be a measure space, let $f \in \mathcal{M}(X, [-\infty, \infty])$, and let $f^+(x) = \max \{0, x\}$ and $f^-(x) = \max \{0, -f(x)\}$ be respectively the positive and negative parts of $f$, which are both positive measurable functions. We say that $f$ is \textit{integrable} according to $\mu$ if and only if we have both $\int_X f^+ \dd \mu < \infty$ and $\int_X f^- \dd \mu < \infty$. Equivalently, $f$ is integrable iff:
+\begin{definition}[Integral of integrable functions] %Benjamin charlier (Définition 3.16)
+		Let $(X, \mathcal{A}, \mu)$ be a measure space, let $f \in \mathcal{M}(X, \mathbb{R})$, and let $f^+(x) = \max \{0, x\}$ and $f^-(x) = \max \{0, -f(x)\}$ be respectively the positive and negative parts of $f$, which are both positive measurable functions. We say that $f$ is \textit{integrable} according to $\mu$ if and only if we have both $\int_X f^+ \dd \mu < \infty$ and $\int_X f^- \dd \mu < \infty$. Equivalently, $f$ is integrable iff:
 				$$\int_X |f| \dd \mu < \infty$$
 		In that case, we define the integral of $f$ according to $\mu$ as:
 				$$\int_X f \dd \mu = \int_X f^+ \dd \mu - \int_X f^- \dd \mu$$
-		We denote by $L^1(X, \mathcal{A}, \mu)$ or $L^1(X)$ the set of integrable functions, and more generally, we denote by $L^n(X)$ the set of functions whose $n$-th power is integrable.
+		We denote by $L^1(X, \mathcal{A}, \mu)$ or $L^1(X)$ the set of integrable functions, and more generally, we denote by $L^n(X)$ the set of measurable functions whose $n$-th power is integrable.
 \end{definition}
+
+\begin{theorem}[Finite linear combinations of integrable functions is integrable] \label{thm:finite-linear-combination-is-integrable}
+		Let $(X, \mathcal{A}, \mu)$ be a measure space, let $f_1, \dots, f_n \in L^1(X)$ be integrable functions, and let $a_1, \dots, a_n \in \mathbb{R}$. Then, $\sum_{i=1}^n a_i f_i \in L^1(X)$.
+\end{theorem}
+
+\begin{proof}
+		Firstly, as for each $1 \leq i \leq n$, $f_i \in L^1(X)$, then $f_i \in \mathcal{M}(X, \mathbb{R})$, and therefore $\sum_{i=1}^n a_i f_i \in \mathcal{M}(X, \mathbb{R})$ from theorem (\ref{thm:linear-combination-measurable}). Furthermore, we have:
+		\begin{align*}
+				\int_X |\sum_{i=1}^n a_i f_i| \dd \mu \leq \int_X \left(\sum_{i=1}^n |a_i| ~ |f_i|\right) \dd \mu = \sum_{i=1}^n \left(|a_i| \int_X |f_i| \dd \mu\right) < \infty
+		\end{align*}
+		where the first inequality comes from theorem (\ref{thm:smaller-positive-measurable-functions-smaller-integral}), and equality comes from theorem (\ref{thm:integral-measurable-functions-linear}).
+\end{proof}
+
+\begin{theorem}[Integral of integrable functions is linear] \label{thm:integral-measurable-functions-linear}
+		Let $(X, \mathcal{A}, \mu)$ be a measure space, let $f_1, \dots, f_n \in L^1(X)$ be integrable functions, and let $a_1, \dots, a_n \in \mathbb{R}$. Then:
+				$$\int_X \sum_{i=1}^n a_i f_i \dd \mu = \sum_{i=1}^n a_i \int_X f_i \dd \mu$$
+\end{theorem}
+
+\begin{proof}
+		Firstly, note that, from theorem (\ref{thm:finite-linear-combination-is-integrable}), $\sum_{i=1}^n a_i f_i \in L^1(X)$, and therefore the leftmost integral is indeed defined. Without loss of generality, we can assume that each $a_i$ is positive. Then, we have:
+				$$(\sum_{i=1}^n a_i f_i)^+ - (\sum_{i=1}^n a_i f_i)^- = \sum_{i=1}^n a_i f_i = \sum_{i=1}^n a_i(f_i^+ - f_i^-) = (\sum_{i=1}^n a_i f_i^+) - (\sum_{i=1}^n a_i f_i^-)$$
+		and therefore
+		\begin{align*}
+				(\sum_{i=1}^n a_i f_i)^+ + (\sum_{i=1}^n a_i f_i^-) &= (\sum_{i=1}^n a_i f_i)^- + (\sum_{i=1}^n a_i f_i^+)\\
+				\iff \int_X (\sum_{i=1}^n a_i f_i)^+ + (\sum_{i=1}^n a_i f_i^-) \dd \mu &= \int_X (\sum_{i=1}^n a_i f_i)^- + (\sum_{i=1}^n a_i f_i^+) \dd \mu\\
+				\iff \int_X (\sum_{i=1}^n a_i f_i)^+ \dd \mu + \int_X (\sum_{i=1}^n a_i f_i^-) \dd \mu &= \int_X (\sum_{i=1}^n a_i f_i)^- \dd \mu + \int_X (\sum_{i=1}^n a_i f_i^+) \dd \mu\\
+				\iff \int_X (\sum_{i=1}^n a_i f_i)^+ \dd \mu + (\sum_{i=1}^n a_i \int_X f_i^- \dd \mu) &= \int_X (\sum_{i=1}^n a_i f_i)^- \dd \mu + (\sum_{i=1}^n a_i \int_X f_i^+ \dd \mu)\\
+				\iff \int_X (\sum_{i=1}^n a_i f_i)^+ \dd \mu - \int_X (\sum_{i=1}^n a_i f_i)^- \dd \mu &= (\sum_{i=1}^n a_i \int_X f_i^+ \dd \mu) - (\sum_{i=1}^n a_i \int_X f_i^- \dd \mu)\\
+				\iff \int_X (\sum_{i=1}^n a_i f_i)^+ \dd \mu - \int_X (\sum_{i=1}^n a_i f_i)^- \dd \mu &= \sum_{i=1}^n a_i(\int_X f_i^+ \dd \mu - \int_X f_i^- \dd \mu)\\
+				\int_X (\sum_{i=1}^n a_i f_i) \dd \mu &= \sum_{i=1}^n a_i \int_X f_i \dd \mu
+		\end{align*}
+\end{proof}
+
 
 %\begin{theorem}%TODO
 %		Let $(X, \mathcal{A}, \mu)$ be a measure space. If $f, g \in L^1(X)$, then $f + g \in L^1(X)$.
@@ -752,8 +982,6 @@
 
 
 
-
-
 \section{Probabilities}
 
 \begin{definition}[Probability space] %Thanks ProofWiki
@@ -773,7 +1001,7 @@
 \end{definition}
 
 
-\begin{definition}[Random variable] %Thanks ProofWiki
+\begin{definition}[Random variable] %Thanks ProofWiki (Definition:Random Variable)
 		Let $(\Omega, \mathcal{A}, \P)$ be a probability space, and let $(E, \mathcal{B})$ be a measurable space. A random variable is a measurable mapping $X \in \mathcal{M}(\Omega, E)$.
 \end{definition}
 
@@ -814,7 +1042,7 @@
 		which we often denote as $\E{X \mid A}$. Note that this integral is defined \fbox{because $L^1(\Omega, \mathcal{A}, \P) = L^1(\Omega, \mathcal{A}, \P_A)$}.
 \end{definition}
 
-\begin{theorem}[Characteristic property of expected value] 
+\begin{theorem}[Characteristic property of conditional expected value] 
 		Let $(\Omega, \mathcal{A}, \P)$ be a probability space, and let $X \in L^1(\Omega, \mathcal{A}, \P)$ be an integrable random variable. Then, for all event $A \in \mathcal{A}$ such that $\P[A] \neq 0$, we have:
 				$$\E{X \mid A} = \frac{1}{\P[A]}\int_A X \dd \P$$
 \end{theorem}
@@ -822,6 +1050,63 @@
 \begin{proof}
 		\fbox{Requires many theorems about integrals}
 \end{proof}
+
+\begin{theorem}[Expected value is linear]
+		Let $(\Omega, \mathcal{A}, \P)$ be a probability space, let $X_1, \dots, X_n \in L^1(\Omega, \mathcal{A}, \P)$ be integrable random variables, and let $a_1, \dots, a_n \in \mathbb{R}$. Then:
+				$$\E{\sum_{i=1}^n a_i X_i} = \sum_{i=1}^n a_i \E{X_i}$$
+\end{theorem}
+
+\begin{proof}
+		This is a direct consequence of the linearity of integrals (theorem (\ref{thm:integral-measurable-functions-linear})).
+\end{proof}
+
+\begin{theorem}[Inclusion of $\mathcal{L}^p$ for finite measures] \label{thm:inclusion-Lp} %Benjamin Charlier (Proposition 5.14)
+		Let $(X, \mathcal{A}, \mu)$ be a measure space where $\mu$ is finite (i.e. $\mu(X) < \infty$), and let $1 \leq q \leq p < \infty$. Then, $\mathcal{L}^p \subseteq \mathcal{L}^q$.
+\end{theorem}
+
+\begin{proof}
+		Let $f \in \mathcal{L}^p$. To prove that $f \in \mathcal{L}^q$, we already have that $f$ is measurable, so we just need to prove that $\int_X |f|^q < \infty$. Let $A = \{x \in X \mid |f(x)| \leq 1\}$ and $B = \{x \in X \mid |f(x)| > 1\}$. Since we have:
+		\begin{align*}
+				\int_A |f|^q \dd \mu \leq \int_A 1 \dd \mu &= \mu(A) \leq \mu(X) < \infty & \int_B |f|^q \dd \mu & \leq \int_B |f|^p \dd \mu < \infty
+		\end{align*}
+		then:
+				$$\int_X |f|^q \dd \mu = \int_X (|f|^q\mathbbm{1}_A + |f|^q\mathbbm{1}_B) \dd \mu = \int_X |f|^q\mathbbm{1}_A \dd \mu + \int_X |f|^q\mathbbm{1}_B \dd \mu = \int_A |f|^q \dd \mu + \int_B |f|^q \dd \mu < \infty$$
+\end{proof}
+
+
+\begin{definition}[Variance] %Benjamin Charlier (Exemple 5.5)
+		Let $(\Omega, \mathcal{A}, \P)$ be a probability space, let $X \in L^2(\Omega, \mathcal{A}, \P)$ be a random variable whose square is integrable. Then, we define the \textit{variance} of $X$ as:
+				$$\V{X} = \int_\Omega (X - \E{X})^2 \dd \P$$
+		Note that $\E{X}$ is indeed defined because $X \in L^2 \subseteq L^1$, and the integral is defined because $(X - \E{X})^2$ is a positive measurable function.
+\end{definition}
+
+\begin{theorem}[Characteristic property of variance]
+		Let $(\Omega, \mathcal{A}, \P)$ be a probability space, and let $X \in L^2(\Omega, \mathcal{A}, \mu)$ be a random variable whose square is integrable. Then:
+				$$\V{X} = \E{X^2} - \E{X}^2$$
+\end{theorem}
+
+\begin{proof}
+		Firstly, note that both $\E{X^2}$ and $\E{X}$ are defined because $X \in L^2 \subseteq L^1$. Then, we have:
+		\begin{align*}
+				\V{X} &= \int_\Omega (X - \E{X})^2 \dd \P\\
+					  &= \int_\Omega X^2 - 2X\E{X} + \E{X}^2 \dd \P\\
+					  &= \int_\Omega X^2 \dd \P - \int_\Omega 2X\E{X} \dd \P + \int_\Omega \E{X}^2 \dd \P\\
+					  &= \E{X^2} - 2\E{X}\int_\Omega X \dd \P + \E{X}^2 \int_\Omega 1 \dd \P\\
+					  &= \E{X^2} - 2 \E{X} \cdot \E{X} + \E{X}^2\\
+					  &= \E{X^2} - \E{X}^2
+		\end{align*}
+\end{proof}
+
+\begin{remark}
+		In the previous proof, going from $\int_\Omega X^2 - 2X\E{X} + \E{X}^2 \dd \P$ to $\int_\Omega X^2 \dd \P - \int_\Omega 2X\E{X} \dd \P + \int_\Omega \E{X}^2 \dd \P$ requires that $X^2$, $2X\E{X}$, and $\E{X}^2$ all belong to $\mathcal{L}^1(\Omega, \mathcal{A}, \P)$, which is true because:
+		\begin{itemize}
+				\item $X \in L^2$ and therefore $X^2 \in L^1$.
+				\item $\int_\Omega |2X\E{X}| \dd \P = |2\E{X}|\int_\Omega X \dd \P < \infty$ because $X \in L^2 \subseteq L^1$
+				\item $\int_\Omega |\E{X}^2| \dd \P = \E{X}^2 \int_\Omega 1 \dd \P = \E{X}^2 < \infty$
+		\end{itemize}
+\end{remark}
+
+
 
 
 %https://en.wikipedia.org/wiki/Probability_density_function#Formal_definition
